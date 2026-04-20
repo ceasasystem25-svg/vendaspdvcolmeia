@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.29 - Auto-Busca CNPJ</title>
+    <title>Sistema de Vendas Pro v10.30 - Ajustes Visuais e Botões Livres</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; }
         
@@ -45,7 +45,7 @@
         input[readonly] { background-color: #f3f4f6; cursor: not-allowed; }
         .hidden { display: none !important; }
         
-        button.btn { padding: 0.6rem 1.2rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; justify-content: center; }
+        button.btn { padding: 0.6rem 1.2rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; justify-content: center; white-space: nowrap; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -55,7 +55,7 @@
         .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
         .btn-outline.active { background: var(--primary); color: white; }
         
-        .btn-acao { font-weight: bold; font-size: 0.75rem; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s; }
+        .btn-acao { font-weight: bold; font-size: 0.75rem; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s; white-space: nowrap; }
         .btn-acao:hover { opacity: 0.85; }
         .btn-acao-print { background-color: #e5e7eb; color: #1f2937; border: 1px solid #d1d5db; }
         .btn-acao-edit { background-color: #0ea5e9; color: #ffffff; }
@@ -63,7 +63,7 @@
 
         .selected-row { background-color: #dbeafe !important; transition: background-color 0.2s; }
         
-        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
         .badge-success { background: #d1fae5; color: #065f46; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
         .badge-warning { background: #fef3c7; color: #92400e; }
@@ -169,12 +169,12 @@
                             <tr>
                                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all-vendas" onclick="toggleTodasVendas(this)"></th>
                                 <th>Nº</th>
-                                <th>Data / Hora</th>
+                                <th style="white-space: nowrap;">Data / Hora</th>
                                 <th>Cliente</th>
                                 <th>Vendedor</th>
-                                <th>Total</th>
+                                <th style="white-space: nowrap;">Total</th>
                                 <th>Resumo de Pagamento</th>
-                                <th>Status</th>
+                                <th style="text-align: center;">Status</th>
                             </tr>
                         </thead>
                         <tbody id="sales-table-body"></tbody>
@@ -230,7 +230,7 @@
             </div>
             <div class="card-table-container">
                 <div class="table-wrapper">
-                    <table><thead><tr><th>Código</th><th>Produto</th><th>Medida</th><th>Preço</th><th>Ações</th></tr></thead><tbody id="prod-table-body"></tbody></table>
+                    <table><thead><tr><th>Código</th><th>Produto</th><th>Medida</th><th>Preço</th><th style="text-align: center; width: 80px;">Ações</th></tr></thead><tbody id="prod-table-body"></tbody></table>
                 </div>
             </div>
         </section>
@@ -277,7 +277,7 @@
             </div>
             <div class="card-table-container">
                 <div class="table-wrapper">
-                    <table><thead><tr><th>Cód</th><th>Nome Fantasia / Contato</th><th>Razão Social (Fiscal)</th><th>Endereço Completo</th><th>Saldo</th><th>Ações</th></tr></thead><tbody id="cli-table-body"></tbody></table>
+                    <table><thead><tr><th>Cód</th><th>Nome Fantasia / Contato</th><th>Endereço Completo</th><th>Saldo</th><th style="text-align: center; width: 80px;">Ações</th></tr></thead><tbody id="cli-table-body"></tbody></table>
                 </div>
             </div>
         </section>
@@ -296,7 +296,7 @@
             </div>
             <div class="card-table-container">
                 <div class="table-wrapper">
-                    <table><thead><tr><th>Código</th><th>Nome</th><th>Ações</th></tr></thead><tbody id="vend-table-body"></tbody></table>
+                    <table><thead><tr><th>Código</th><th>Nome</th><th style="text-align: center; width: 80px;">Ações</th></tr></thead><tbody id="vend-table-body"></tbody></table>
                 </div>
             </div>
         </section>
@@ -335,7 +335,7 @@
                         <table>
                             <thead><tr>
                                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all-acerto" onclick="toggleTodasContas(this, 'check-acerto')"></th>
-                                <th>Venda</th><th>Cliente</th><th>Vencimento</th><th>Valor Total</th><th>Status</th><th>Pagamento Registrado</th>
+                                <th>Venda</th><th>Cliente</th><th style="white-space: nowrap;">Vencimento</th><th>Valor Total</th><th style="text-align: center;">Status</th><th>Pagamento Registrado</th>
                             </tr></thead>
                             <tbody id="acerto-table-body"></tbody>
                         </table>
@@ -355,7 +355,7 @@
                     </div>
                     <div class="table-wrapper">
                         <table>
-                            <thead><tr><th>Data da Baixa</th><th>Venda</th><th>Cliente</th><th>Método de Pagamento</th><th>Valor Recebido</th><th>Ações</th></tr></thead>
+                            <thead><tr><th style="white-space: nowrap;">Data da Baixa</th><th>Venda</th><th>Cliente</th><th>Método de Pagamento</th><th>Valor Recebido</th><th style="text-align: center; width: 80px;">Ações</th></tr></thead>
                             <tbody id="historico-table-body"></tbody>
                         </table>
                     </div>
@@ -584,10 +584,9 @@
             } catch (e) { console.error("Erro ao buscar CEP", e); }
         }
 
-        // --- NOVA FUNÇÃO: BUSCA AUTOMÁTICA DE CNPJ ---
         async function buscarCNPJ(cnpj) {
             let cnpjLimpo = cnpj.replace(/\D/g, '');
-            if (cnpjLimpo.length !== 14) return; // Só faz a busca se for CNPJ (14 dígitos)
+            if (cnpjLimpo.length !== 14) return; 
             
             try {
                 document.getElementById('c-nome').placeholder = "Buscando dados na Receita...";
@@ -599,9 +598,7 @@
                 
                 let dados = await res.json();
                 
-                // Preenche os campos
                 document.getElementById('c-razao').value = dados.razao_social || '';
-                // Se tiver Nome Fantasia ele usa, senão usa a Razão Social no campo principal
                 document.getElementById('c-nome').value = dados.nome_fantasia || dados.razao_social || '';
                 document.getElementById('c-cep').value = dados.cep || '';
                 document.getElementById('c-rua').value = `${dados.logradouro || ''} ${dados.complemento || ''}`.trim();
@@ -611,7 +608,6 @@
                 
                 document.getElementById('c-nome').placeholder = "Aparece nas vendas";
                 
-                // Avisa o usuário que deu certo (opcional, mas bom pro feedback)
                 sysAlert("Dados da empresa importados com sucesso!");
                 
             } catch (e) {
@@ -631,10 +627,9 @@
         function autoFillVendedor() { formatInputVal('v-vendedor', db.vendedores); } function autoFillProduct() { const p = formatInputVal('v-prod-input', db.produtos); if(p) { document.getElementById('v-unit').value = p.preco; } }
         function autoFillCliente() { const c = formatInputVal('v-cliente', db.clientes); const divCredito = document.getElementById('div-alerta-credito'); if(c && (c.credito || 0) > 0) { document.getElementById('v-saldo-cliente').innerText = formatCurrency(c.credito); divCredito.style.display = 'flex'; } else { divCredito.style.display = 'none'; } atualizarTotalTela(); }
 
-        // --- ATUALIZAÇÃO: CLIENTES SALVANDO A RAZÃO SOCIAL ---
         async function saveClient(e) { 
             e.preventDefault(); const idEdit = document.getElementById('c-id-edit').value; const cCodigo = parseInt(document.getElementById('c-codigo').value); const cNome = document.getElementById('c-nome').value; const cPrazo = parseInt(document.getElementById('c-prazo').value) || 0; 
-            const cRazao = document.getElementById('c-razao').value; // Novo campo
+            const cRazao = document.getElementById('c-razao').value; 
             const cTelefone = document.getElementById('c-telefone').value; const cCpf = document.getElementById('c-cpf').value; 
             const cIe = document.getElementById('c-ie').value; const cIndIe = document.getElementById('c-ind-ie').value;
             const cCep = document.getElementById('c-cep').value; const cRua = document.getElementById('c-rua').value; const cNum = document.getElementById('c-num').value; const cCidade = document.getElementById('c-cidade').value;
@@ -642,12 +637,19 @@
             saveDB(); renderClients(); e.target.reset(); document.getElementById('c-id-edit').value = ''; document.getElementById('c-codigo').readOnly = false; document.getElementById('btn-cli-save').innerText = 'Salvar Cliente'; 
         }
         function editClient(id) { const c = db.clientes.find(c => c.id === id); if (!c) return; document.getElementById('c-id-edit').value = c.id; document.getElementById('c-codigo').value = c.id; document.getElementById('c-codigo').readOnly = true; document.getElementById('c-nome').value = c.nome; document.getElementById('c-razao').value = c.razaoSocial || ''; document.getElementById('c-prazo').value = c.prazo; document.getElementById('c-telefone').value = c.telefone || ''; document.getElementById('c-cpf').value = c.cpf || c.cnpj || ''; document.getElementById('c-ie').value = c.ie || ''; document.getElementById('c-ind-ie').value = c.indIe || '9'; document.getElementById('c-cep').value = c.cep || ''; document.getElementById('c-rua').value = c.rua || ''; document.getElementById('c-num').value = c.num || ''; document.getElementById('c-cidade').value = c.cidade || ''; document.getElementById('btn-cli-save').innerText = 'Atualizar Cliente'; window.scrollTo(0,0); }
-        function renderClients() { document.getElementById('cli-table-body').innerHTML = db.clientes.map(c => { let enderecoCompleto = c.rua ? `${c.rua}, ${c.num || 'S/N'} - ${c.cidade || ''}` : (c.endereco || '-'); return `<tr><td><b>${c.id}</b></td><td><b>${c.nome}</b><br><small style="color:#666">${c.telefone||'Sem telefone'}</small></td><td>${c.razaoSocial || '<span style="color:#999; font-size:0.8rem">Mesmo nome principal</span>'}</td><td>${enderecoCompleto}</td><td><b style="color:var(--success)">R$ ${formatCurrency(c.credito)}</b></td><td><button type="button" class="btn btn-info" onclick="editClient(${c.id})" style="padding:4px">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteClient(${c.id})" style="padding:4px">X</button></td></tr>`; }).join(''); document.getElementById('dl-clientes').innerHTML = db.clientes.map(c => `<option value="${c.id} - ${c.nome}">`).join(''); }
+        function renderClients() { 
+            // REMOVIDA A COLUNA DE RAZÃO SOCIAL AQUI PARA GANHAR ESPAÇO
+            document.getElementById('cli-table-body').innerHTML = db.clientes.map(c => { 
+                let enderecoCompleto = c.rua ? `${c.rua}, ${c.num || 'S/N'} - ${c.cidade || ''}` : (c.endereco || '-'); 
+                return `<tr><td><b>${c.id}</b></td><td><b>${c.nome}</b><br><small style="color:#666">${c.telefone||'Sem telefone'}</small></td><td>${enderecoCompleto}</td><td><b style="color:var(--success)">R$ ${formatCurrency(c.credito)}</b></td><td style="text-align: center; white-space: nowrap;"><button type="button" class="btn btn-info" onclick="editClient(${c.id})" style="padding:6px; height:auto;">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteClient(${c.id})" style="padding:6px; height:auto;">X</button></td></tr>`; 
+            }).join(''); 
+            document.getElementById('dl-clientes').innerHTML = db.clientes.map(c => `<option value="${c.id} - ${c.nome}">`).join(''); 
+        }
         async function deleteClient(id) { if(await sysConfirm('Excluir cliente?', true)) { db.clientes = db.clientes.filter(c => c.id !== id); saveDB(); renderClients(); } }
 
         async function saveVendedor(e) { e.preventDefault(); const idEdit = document.getElementById('vend-id-edit').value; const vCodigo = parseInt(document.getElementById('vend-codigo').value); const vNome = document.getElementById('vend-nome').value; if (idEdit) { const idx = db.vendedores.findIndex(v => v.id == idEdit); if (idx > -1) { db.vendedores[idx] = { ...db.vendedores[idx], nome: vNome }; sysAlert("Vendedor atualizado!"); } } else { if(db.vendedores.find(v => v.id === vCodigo)) return sysAlert("Este código já está em uso por outro vendedor!"); db.vendedores.push({ id: vCodigo, nome: vNome }); } saveDB(); renderVendedores(); e.target.reset(); document.getElementById('vend-id-edit').value = ''; document.getElementById('vend-codigo').readOnly = false; document.getElementById('btn-vend-save').innerText = 'Salvar Vendedor'; }
         function editVendedor(id) { const v = db.vendedores.find(v => v.id === id); if (!v) return; document.getElementById('vend-id-edit').value = v.id; document.getElementById('vend-codigo').value = v.id; document.getElementById('vend-codigo').readOnly = true; document.getElementById('vend-nome').value = v.nome; document.getElementById('btn-vend-save').innerText = 'Atualizar Vendedor'; window.scrollTo(0,0); }
-        function renderVendedores() { document.getElementById('vend-table-body').innerHTML = db.vendedores.map(v => `<tr><td><b>${v.id}</b></td><td>${v.nome}</td><td><button type="button" class="btn btn-info" onclick="editVendedor(${v.id})" style="padding:4px">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteVendedor(${v.id})" style="padding:4px">X</button></td></tr>`).join(''); document.getElementById('dl-vendedores').innerHTML = db.vendedores.map(v => `<option value="${v.id} - ${v.nome}">`).join(''); const filterOptions = '<option value="">Todos</option>' + db.vendedores.map(v => `<option value="${v.nome}">${v.nome}</option>`).join(''); document.getElementById('f-vendedor').innerHTML = filterOptions; }
+        function renderVendedores() { document.getElementById('vend-table-body').innerHTML = db.vendedores.map(v => `<tr><td><b>${v.id}</b></td><td>${v.nome}</td><td style="text-align: center; white-space: nowrap;"><button type="button" class="btn btn-info" onclick="editVendedor(${v.id})" style="padding:6px; height:auto;">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteVendedor(${v.id})" style="padding:6px; height:auto;">X</button></td></tr>`).join(''); document.getElementById('dl-vendedores').innerHTML = db.vendedores.map(v => `<option value="${v.id} - ${v.nome}">`).join(''); const filterOptions = '<option value="">Todos</option>' + db.vendedores.map(v => `<option value="${v.nome}">${v.nome}</option>`).join(''); document.getElementById('f-vendedor').innerHTML = filterOptions; }
         async function deleteVendedor(id) { if(await sysConfirm('Excluir vendedor?', true)) { db.vendedores = db.vendedores.filter(v => v.id !== id); saveDB(); renderVendedores(); } }
 
         async function saveProduct(e) { 
@@ -657,7 +659,7 @@
             saveDB(); renderProducts(); e.target.reset(); document.getElementById('p-id-edit').value = ''; document.getElementById('p-codigo').readOnly = false; document.getElementById('btn-prod-save').innerText = 'Salvar Produto'; 
         }
         function editProduct(id) { const p = db.produtos.find(p => p.id === id); if (!p) return; document.getElementById('p-id-edit').value = p.id; document.getElementById('p-codigo').value = p.id; document.getElementById('p-codigo').readOnly = true; document.getElementById('p-nome').value = p.nome; document.getElementById('p-unidade').value = p.unidade; document.getElementById('p-preco').value = p.preco; document.getElementById('p-ncm').value = p.ncm || ''; document.getElementById('p-cfop').value = p.cfop || ''; document.getElementById('p-origem').value = p.origem || '0'; document.getElementById('p-cbenef').value = p.cbenef || ''; document.getElementById('btn-prod-save').innerText = 'Atualizar Produto'; window.scrollTo(0,0); }
-        function renderProducts() { document.getElementById('prod-table-body').innerHTML = db.produtos.map(p => `<tr><td><b>${p.id}</b></td><td>${p.nome}</td><td>${p.unidade}</td><td>R$ ${formatCurrency(p.preco)}</td><td><button type="button" class="btn btn-info" onclick="editProduct(${p.id})" style="padding:4px">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteProd(${p.id})" style="padding:4px">X</button></td></tr>`).join(''); document.getElementById('dl-produtos').innerHTML = db.produtos.map(p => `<option value="${p.id} - ${p.nome}">`).join(''); }
+        function renderProducts() { document.getElementById('prod-table-body').innerHTML = db.produtos.map(p => `<tr><td><b>${p.id}</b></td><td>${p.nome}</td><td>${p.unidade}</td><td>R$ ${formatCurrency(p.preco)}</td><td style="text-align: center; white-space: nowrap;"><button type="button" class="btn btn-info" onclick="editProduct(${p.id})" style="padding:6px; height:auto;">✏️</button> <button type="button" class="btn btn-danger" onclick="deleteProd(${p.id})" style="padding:6px; height:auto;">X</button></td></tr>`).join(''); document.getElementById('dl-produtos').innerHTML = db.produtos.map(p => `<option value="${p.id} - ${p.nome}">`).join(''); }
         async function deleteProd(id) { if(await sysConfirm('Excluir produto?', true)) { db.produtos = db.produtos.filter(p => p.id !== id); saveDB(); renderProducts(); } }
         
         function highlightRow(checkbox) { const tr = checkbox.closest('tr'); if(checkbox.checked) { tr.classList.add('selected-row'); } else { tr.classList.remove('selected-row'); } }
@@ -704,7 +706,7 @@
                 let rowStyles = v.status === 'Cancelada' ? 'background: #fff5f5;' : ''; 
                 let pgtoVis = v.pagamento.replace(/\|/g, '<br>').replace(/Prazo em Carteira/g, '<span style="color:#f59e0b;font-weight:bold;">Prazo</span>'); 
                 
-                return `<tr style="${rowStyles}"><td style="text-align: center;"><input type="checkbox" class="check-venda" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td><b>${dataPedStr}</b> <span style="font-size:0.85rem; color:#64748b; margin-left: 6px;">${horaStr}</span></td><td>${v.cliente}</td><td>${v.vendedor || '-'}</td><td><b>R$ ${formatCurrency(v.total)}</b></td><td style="font-size:0.8rem;">${pgtoVis}</td><td><span class="badge ${v.status === 'Ativa' ? 'badge-success' : 'badge-danger'}">${v.status}</span></td></tr>`; 
+                return `<tr style="${rowStyles}"><td style="text-align: center;"><input type="checkbox" class="check-venda" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td style="white-space: nowrap;"><b>${dataPedStr}</b> <span style="font-size:0.85rem; color:#64748b; margin-left: 6px;">${horaStr}</span></td><td>${v.cliente}</td><td>${v.vendedor || '-'}</td><td style="white-space: nowrap;"><b>R$ ${formatCurrency(v.total)}</b></td><td style="font-size:0.8rem;">${pgtoVis}</td><td style="text-align: center;"><span class="badge ${v.status === 'Ativa' ? 'badge-success' : 'badge-danger'}">${v.status}</span></td></tr>`; 
             }).join(''); 
             
             updateDashboard(); 
@@ -787,8 +789,8 @@
 
         function switchAcertoTab(tab) { document.getElementById('btn-tab-pendentes').classList.remove('active-tab'); document.getElementById('btn-tab-historico').classList.remove('active-tab'); document.getElementById('view-pendentes').style.display = 'none'; document.getElementById('view-historico').style.display = 'none'; if(tab === 'pendentes') { document.getElementById('btn-tab-pendentes').classList.add('active-tab'); document.getElementById('view-pendentes').style.display = 'flex'; renderAcerto(); } else { document.getElementById('btn-tab-historico').classList.add('active-tab'); document.getElementById('view-historico').style.display = 'flex'; const hoje = new Date().toISOString().split('T')[0]; if(!document.getElementById('f-hist-inicio').value) { document.getElementById('f-hist-inicio').value = hoje; document.getElementById('f-hist-fim').value = hoje; } renderHistorico(); } }
         function setFiltroAcerto(filtro) { filtroAcertoAtual = filtro; ['Todos', 'A Vencer', 'Vencidos', 'Pagas'].forEach(f => document.getElementById(`f-acerto-${f}`).classList.remove('active')); document.getElementById(`f-acerto-${filtro}`).classList.add('active'); renderAcerto(); }
-        function renderAcerto() { const tbody = document.getElementById('acerto-table-body'); const hoje = new Date().toISOString().split('T')[0]; const busca = (document.getElementById('f-acerto-busca')?.value || '').toLowerCase(); const inicio = document.getElementById('f-acerto-inicio')?.value; const fim = document.getElementById('f-acerto-fim')?.value; document.getElementById('check-all-acerto').checked = false; let contas = db.vendas.filter(v => v.vencimento !== null && v.status === 'Ativa'); contas = contas.filter(v => { const isPago = v.pagamento.startsWith('Acertado'); const isVencido = !isPago && v.vencimento < hoje; const isAVencer = !isPago && v.vencimento >= hoje; if (filtroAcertoAtual === 'Pagas' && !isPago) return false; if (filtroAcertoAtual === 'Vencidos' && !isVencido) return false; if (filtroAcertoAtual === 'A Vencer' && !isAVencer) return false; if (busca && !v.cliente.toLowerCase().includes(busca)) return false; if (inicio && v.vencimento < inicio) return false; if (fim && v.vencimento > fim) return false; return true; }); contas.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento)); if(contas.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem; color: #666;">Nenhuma conta encontrada.</td></tr>`; return; } tbody.innerHTML = contas.map(v => { const isPago = v.pagamento.startsWith('Acertado'); const isVencido = !isPago && v.vencimento < hoje; let rowStyle = isPago ? 'background: #f0fdf4; opacity: 0.8;' : (isVencido ? 'background: #fef2f2;' : ''); let statusBadge = isPago ? '<span class="badge badge-success">PAGO</span>' : (isVencido ? '<span class="badge badge-danger">VENCIDO</span>' : '<span class="badge badge-warning">A VENCER</span>'); let pgtoText = isPago ? `<span style="color: #059669; font-weight: bold;">✔ ${v.pagamento.replace('Acertado (','').replace(')','')}</span>` : '-'; let valorRestante = v.total - (v.valorPago || 0); let faltaTxt = (!isPago && (v.valorPago || 0) > 0) ? `<br><span style="font-size:0.8rem; color:var(--danger)">Falta R$ ${formatCurrency(valorRestante)}</span>` : ''; return `<tr style="${rowStyle}"><td style="text-align: center;"><input type="checkbox" class="check-acerto" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td>${v.cliente}</td><td style="${isVencido ? 'color: red; font-weight: bold;' : ''}">${v.vencimento.split('-').reverse().join('/')}</td><td><b>R$ ${formatCurrency(v.total)}</b>${faltaTxt}</td><td>${statusBadge}</td><td>${pgtoText}</td></tr>`; }).join(''); }
-        function renderHistorico() { const tbody = document.getElementById('historico-table-body'); const busca = (document.getElementById('f-hist-busca')?.value || '').toLowerCase(); const inicio = document.getElementById('f-hist-inicio')?.value; const fim = document.getElementById('f-hist-fim')?.value; let contasComPagamento = db.vendas.filter(v => (v.historicoPgto && v.historicoPgto.length > 0) || v.pagamento.startsWith('Acertado')); let linhas = []; contasComPagamento.forEach(v => { if(v.historicoPgto && v.historicoPgto.length > 0) { v.historicoPgto.forEach(pgto => { const dataPgto = pgto.data.split('T')[0]; if((!busca || v.cliente.toLowerCase().includes(busca)) && (!inicio || dataPgto >= inicio) && (!fim || dataPgto <= fim)) { linhas.push({ dataIso: pgto.data, vendaId: v.id, cliente: v.cliente, metodo: pgto.metodo, valor: pgto.valor }); } }); } else if(v.dataBaixa) { const dataPgto = v.dataBaixa.split('T')[0]; if((!busca || v.cliente.toLowerCase().includes(busca)) && (!inicio || dataPgto >= inicio) && (!fim || dataPgto <= fim)) { linhas.push({ dataIso: v.dataBaixa, vendaId: v.id, cliente: v.cliente, metodo: v.pagamento.replace('Acertado (','').replace(')',''), valor: v.total }); } } }); linhas.sort((a, b) => new Date(b.dataIso) - new Date(a.dataIso)); if(linhas.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #666;">Nenhum registro de pagamento encontrado.</td></tr>`; return; } tbody.innerHTML = linhas.map(l => { const dateObj = new Date(l.dataIso); const dataFormatada = dateObj.toLocaleDateString('pt-BR'); const horaFormatada = dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}); return `<tr><td><b>${dataFormatada}</b> <span style="color:#888; font-size:0.8rem">${horaFormatada}</span></td><td><b>#${formatId(l.vendaId)}</b></td><td>${l.cliente}</td><td><span style="color: #059669; font-weight: bold;">${l.metodo}</span></td><td><b>R$ ${formatCurrency(l.valor)}</b></td><td><button class="btn btn-ghost" onclick="cancelarBaixaIndividual(${l.vendaId})" style="padding:4px 8px; font-size:0.85rem; color: var(--danger); border-color: var(--danger);">❌ Desfazer</button></td></tr>`; }).join(''); }
+        function renderAcerto() { const tbody = document.getElementById('acerto-table-body'); const hoje = new Date().toISOString().split('T')[0]; const busca = (document.getElementById('f-acerto-busca')?.value || '').toLowerCase(); const inicio = document.getElementById('f-acerto-inicio')?.value; const fim = document.getElementById('f-acerto-fim')?.value; document.getElementById('check-all-acerto').checked = false; let contas = db.vendas.filter(v => v.vencimento !== null && v.status === 'Ativa'); contas = contas.filter(v => { const isPago = v.pagamento.startsWith('Acertado'); const isVencido = !isPago && v.vencimento < hoje; const isAVencer = !isPago && v.vencimento >= hoje; if (filtroAcertoAtual === 'Pagas' && !isPago) return false; if (filtroAcertoAtual === 'Vencidos' && !isVencido) return false; if (filtroAcertoAtual === 'A Vencer' && !isAVencer) return false; if (busca && !v.cliente.toLowerCase().includes(busca)) return false; if (inicio && v.vencimento < inicio) return false; if (fim && v.vencimento > fim) return false; return true; }); contas.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento)); if(contas.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem; color: #666;">Nenhuma conta encontrada.</td></tr>`; return; } tbody.innerHTML = contas.map(v => { const isPago = v.pagamento.startsWith('Acertado'); const isVencido = !isPago && v.vencimento < hoje; let rowStyle = isPago ? 'background: #f0fdf4; opacity: 0.8;' : (isVencido ? 'background: #fef2f2;' : ''); let statusBadge = isPago ? '<span class="badge badge-success">PAGO</span>' : (isVencido ? '<span class="badge badge-danger">VENCIDO</span>' : '<span class="badge badge-warning">A VENCER</span>'); let pgtoText = isPago ? `<span style="color: #059669; font-weight: bold;">✔ ${v.pagamento.replace('Acertado (','').replace(')','')}</span>` : '-'; let valorRestante = v.total - (v.valorPago || 0); let faltaTxt = (!isPago && (v.valorPago || 0) > 0) ? `<br><span style="font-size:0.8rem; color:var(--danger)">Falta R$ ${formatCurrency(valorRestante)}</span>` : ''; return `<tr style="${rowStyle}"><td style="text-align: center;"><input type="checkbox" class="check-acerto" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td>${v.cliente}</td><td style="${isVencido ? 'color: red; font-weight: bold;' : 'white-space: nowrap;'}">${v.vencimento.split('-').reverse().join('/')}</td><td style="white-space: nowrap;"><b>R$ ${formatCurrency(v.total)}</b>${faltaTxt}</td><td style="text-align: center;">${statusBadge}</td><td>${pgtoText}</td></tr>`; }).join(''); }
+        function renderHistorico() { const tbody = document.getElementById('historico-table-body'); const busca = (document.getElementById('f-hist-busca')?.value || '').toLowerCase(); const inicio = document.getElementById('f-hist-inicio')?.value; const fim = document.getElementById('f-hist-fim')?.value; let contasComPagamento = db.vendas.filter(v => (v.historicoPgto && v.historicoPgto.length > 0) || v.pagamento.startsWith('Acertado')); let linhas = []; contasComPagamento.forEach(v => { if(v.historicoPgto && v.historicoPgto.length > 0) { v.historicoPgto.forEach(pgto => { const dataPgto = pgto.data.split('T')[0]; if((!busca || v.cliente.toLowerCase().includes(busca)) && (!inicio || dataPgto >= inicio) && (!fim || dataPgto <= fim)) { linhas.push({ dataIso: pgto.data, vendaId: v.id, cliente: v.cliente, metodo: pgto.metodo, valor: pgto.valor }); } }); } else if(v.dataBaixa) { const dataPgto = v.dataBaixa.split('T')[0]; if((!busca || v.cliente.toLowerCase().includes(busca)) && (!inicio || dataPgto >= inicio) && (!fim || dataPgto <= fim)) { linhas.push({ dataIso: v.dataBaixa, vendaId: v.id, cliente: v.cliente, metodo: v.pagamento.replace('Acertado (','').replace(')',''), valor: v.total }); } } }); linhas.sort((a, b) => new Date(b.dataIso) - new Date(a.dataIso)); if(linhas.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #666;">Nenhum registro de pagamento encontrado.</td></tr>`; return; } tbody.innerHTML = linhas.map(l => { const dateObj = new Date(l.dataIso); const dataFormatada = dateObj.toLocaleDateString('pt-BR'); const horaFormatada = dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}); return `<tr><td style="white-space: nowrap;"><b>${dataFormatada}</b> <span style="color:#888; font-size:0.8rem">${horaFormatada}</span></td><td><b>#${formatId(l.vendaId)}</b></td><td>${l.cliente}</td><td><span style="color: #059669; font-weight: bold;">${l.metodo}</span></td><td style="white-space: nowrap;"><b>R$ ${formatCurrency(l.valor)}</b></td><td style="text-align: center; white-space: nowrap;"><button class="btn btn-ghost" onclick="cancelarBaixaIndividual(${l.vendaId})" style="padding:4px 8px; font-size:0.85rem; color: var(--danger); border-color: var(--danger);">❌ Desfazer</button></td></tr>`; }).join(''); }
         
         function imprimirRelatorioAcerto() { 
             let contas = []; const checks = document.querySelectorAll('.check-acerto:checked'); if (checks.length > 0) { const ids = Array.from(checks).map(cb => parseInt(cb.value)); contas = db.vendas.filter(v => ids.includes(v.id)); } else { const rows = document.querySelectorAll('#acerto-table-body tr'); if(rows.length === 0 || rows[0].innerText.includes('Nenhuma conta')) return sysAlert("Não há contas filtradas para imprimir."); rows.forEach(row => { const cb = row.querySelector('.check-acerto'); if(cb) { const v = db.vendas.find(v => v.id === parseInt(cb.value)); if(v) contas.push(v); } }); } if(contas.length === 0) return sysAlert("Erro ao carregar contas."); 
