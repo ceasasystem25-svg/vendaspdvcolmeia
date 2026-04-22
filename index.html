@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.38 - Baixa de Fornecedores</title>
+    <title>Sistema de Vendas Pro v10.39 - Impressão Compras</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; --payable: #6366f1; }
         
@@ -790,7 +790,40 @@
         function setFiltroAcerto(f) { filtroAcertoAtual = f; ['Todos','A Vencer','Vencidos','Pagas'].forEach(x => document.getElementById(`f-acerto-${x}`).classList.remove('active')); document.getElementById(`f-acerto-${f}`).classList.add('active'); renderAcerto(); }
         function renderAcerto() { const tb=document.getElementById('acerto-table-body'); const hj=new Date().toISOString().split('T')[0]; const b=(document.getElementById('f-acerto-busca').value||'').toLowerCase(); const ini=document.getElementById('f-acerto-inicio').value; const fim=document.getElementById('f-acerto-fim').value; document.getElementById('check-all-acerto').checked=false; let flt=db.vendas.filter(v=>v.vencimento!==null && v.status==='Ativa'); flt=flt.filter(v=>{ const p=v.pagamento.startsWith('Acertado'); const vn=!p && v.vencimento<hj; const av=!p && v.vencimento>=hj; if(filtroAcertoAtual==='Pagas'&&!p)return false; if(filtroAcertoAtual==='Vencidos'&&!vn)return false; if(filtroAcertoAtual==='A Vencer'&&!av)return false; if(b&&!v.cliente.toLowerCase().includes(b))return false; if(ini&&v.vencimento<ini)return false; if(fim&&v.vencimento>fim)return false; return true; }); flt.sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento)); if(!flt.length) { tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhuma conta.</td></tr>`; return; } tb.innerHTML=flt.map(v=>{ const p=v.pagamento.startsWith('Acertado'); const vn=!p && v.vencimento<hj; let sty=p?'background:#f0fdf4;opacity:0.8':(vn?'background:#fef2f2':''); let bg=p?'<span class="badge badge-success">PAGO</span>':(vn?'<span class="badge badge-danger">VENCIDO</span>':'<span class="badge badge-warning">A VENCER</span>'); let pt=p?`<span style="color:#059669;font-weight:bold;">✔ ${v.pagamento.replace('Acertado (','').replace(')','')}</span>`:'-'; let res=v.total-(v.valorPago||0); let fx=(!p&&(v.valorPago||0)>0)?`<br><span style="font-size:0.8rem;color:var(--danger)">Falta R$ ${formatCurrency(res)}</span>`:''; return `<tr style="${sty}"><td style="text-align:center"><input type="checkbox" class="check-acerto" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td>${v.cliente}</td><td style="${vn?'color:red;font-weight:bold':'white-space:nowrap'}">${v.vencimento.split('-').reverse().join('/')}</td><td style="white-space:nowrap"><b>R$ ${formatCurrency(v.total)}</b>${fx}</td><td style="text-align:center">${bg}</td><td>${pt}</td></tr>`; }).join(''); }
         function renderHistorico() { const tb=document.getElementById('historico-table-body'); const b=(document.getElementById('f-hist-busca').value||'').toLowerCase(); const ini=document.getElementById('f-hist-inicio').value; const fim=document.getElementById('f-hist-fim').value; let l=[]; db.vendas.filter(v=>(v.historicoPgto&&v.historicoPgto.length>0)||v.pagamento.startsWith('Acertado')).forEach(v=>{ if(v.historicoPgto&&v.historicoPgto.length>0){ v.historicoPgto.forEach(p=>{ const dt=p.data.split('T')[0]; if((!b||v.cliente.toLowerCase().includes(b))&&(!ini||dt>=ini)&&(!fim||dt<=fim)) l.push({dIso:p.data, vId:v.id, cl:v.cliente, met:p.metodo, val:p.valor}); }); } else if(v.dataBaixa) { const dt=v.dataBaixa.split('T')[0]; if((!b||v.cliente.toLowerCase().includes(b))&&(!ini||dt>=ini)&&(!fim||dt<=fim)) l.push({dIso:v.dataBaixa, vId:v.id, cl:v.cliente, met:v.pagamento.replace('Acertado (','').replace(')',''), val:v.total}); } }); l.sort((a,b)=>new Date(b.dIso)-new Date(a.dIso)); if(!l.length){ tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum registro.</td></tr>`; return; } tb.innerHTML=l.map(x=>{ const dt=new Date(x.dIso); return `<tr><td style="white-space:nowrap"><b>${dt.toLocaleDateString('pt-BR')}</b> <span style="color:#888;font-size:0.8rem">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span></td><td><b>#${formatId(x.vId)}</b></td><td>${x.cl}</td><td><span style="color:#059669;font-weight:bold">${x.met}</span></td><td style="white-space:nowrap"><b>R$ ${formatCurrency(x.val)}</b></td><td style="text-align:center"><button class="btn btn-ghost" onclick="cancelarBaixaIndividual(${x.vId})" style="padding:4px 8px;font-size:0.85rem;color:var(--danger);border-color:var(--danger)">❌ Desfazer</button></td></tr>`; }).join(''); }
-        function imprimirRelatorioAcerto() { sysAlert("Impressão do relatório de Acerto!"); }
+        
+        function imprimirRelatorioAcerto() { 
+            document.getElementById('modal-impressao-agrupada').style.display='flex';
+            let tbody = ''; let total = 0;
+            document.querySelectorAll('#acerto-table-body tr').forEach(tr => {
+                let cols = tr.querySelectorAll('td');
+                if(cols.length > 5 && tr.innerText !== 'Nenhuma conta.') {
+                   let valStr = cols[4].innerText.split('\n')[0]; 
+                   tbody += `<tr>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[1].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[2].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[3].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${valStr}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[5].innerText}</td>
+                   </tr>`;
+                   total += strToFloat(valStr.replace('R$','').trim());
+                }
+            });
+            let h = `<h3 style="text-align:center;font-family:sans-serif;">Relatório de Contas a Receber</h3>
+            <table style="width:100%; border-collapse: collapse; text-align:left; font-family:sans-serif; font-size:12px;">
+                <thead>
+                    <tr style="background:#f3f4f6;">
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Cliente</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Vencimento</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Valor</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>${tbody}</tbody>
+            </table>
+            <h3 style="text-align:right; font-family:sans-serif; margin-top:20px;">Total Visível: R$ ${formatCurrency(total)}</h3>`;
+            document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+        }
         
         function abrirModalBaixa() { const c=document.querySelectorAll('.check-acerto:checked'); if(!c.length) return sysAlert("Selecione conta pendente."); let ht='<ul style="list-style:none;padding:0;margin:0;">'; let tot=0; let pg=0; c.forEach(cb=>{ const v=db.vendas.find(x=>x.id==cb.value); if(v){ if(!v.pagamento.startsWith('Acertado')){ let res=v.total-(v.valorPago||0); tot+=res; ht+=`<li style="padding:8px 5px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:0.9rem;"><span><b>#${formatId(v.id)}</b> - ${v.cliente}</span><b>R$ ${formatCurrency(res)}</b></li>`; } else pg++; } }); ht+='</ul>'; if(tot===0&&pg>0) return sysAlert("Já estão pagas!"); document.getElementById('lista-baixa').innerHTML=ht; document.getElementById('total-baixa-txt').innerText=`R$ ${formatCurrency(tot)}`; if(c.length===1&&tot>0) { document.getElementById('div-baixa-parcial').style.display='block'; document.getElementById('v-baixa-valor').value=tot.toFixed(2).replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); } else { document.getElementById('div-baixa-parcial').style.display='none'; } document.getElementById('modal-baixa').style.display='flex'; }
         function fecharModalBaixa() { document.getElementById('modal-baixa').style.display='none'; }
@@ -844,7 +877,6 @@
         const base = { data: dtCpr, fornecedorId: f.id, fornecedor: f.nome, carrinho: [...cartCpr], pagamentos: [...pgtosCpr], total: t.totalVenda, vencimento: venc, status: 'Ativa', situacao: stat, itens: resumo, pgtoString }; 
         if(idEdit) { 
             const idx = db.compras.findIndex(x => x.id == idEdit); 
-            // Preserve payment history on edit
             if(db.compras[idx].dataBaixa) base.dataBaixa = db.compras[idx].dataBaixa;
             base.valorPago = db.compras[idx].valorPago || t.totalPago;
             base.valorPagoOriginal = db.compras[idx].valorPagoOriginal || t.totalPago;
@@ -869,7 +901,6 @@
             const bg = pg ? '<span class="badge badge-success">PAGO</span>' : (vn ? '<span class="badge badge-danger">VENCIDA</span>' : '<span class="badge badge-warning">A VENCER</span>'); 
             const vStr = pg ? '-' : `<b style="color:${vn?'red':'#000'}">${c.vencimento.split('-').reverse().join('/')}</b>`; 
             
-            // Lógica para mostrar pagamentos parciais igual nas Vendas
             let pt = pg ? `<span style="color:#059669;font-weight:bold;">✔ OK</span>` : c.pgtoString; 
             if(c.historicoPgto && c.historicoPgto.length > 0 && pg) pt = `<span style="color:#059669;font-weight:bold;">✔ Baixado</span>`;
             let res = c.total - (c.valorPago || 0); 
@@ -893,8 +924,70 @@
         async function cancelarBaixaSelecionadosCpr() { const c = document.querySelectorAll('.check-pagar:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm(`Desfazer pagamento ao fornecedor?`, true)) { const ids = Array.from(c).map(x => parseInt(x.value)); if(desfazerBaixaLogicaCpr(ids) > 0) { saveDB(); renderPagar(); renderPagarHist(); } } }
         async function cancelarBaixaIndividualCpr(id) { if(await sysConfirm(`DESFAZER PAGAMENTO AO FORNECEDOR?`, true)) { if(desfazerBaixaLogicaCpr([id]) > 0) { saveDB(); renderPagar(); renderPagarHist(); } } }
 
-        function imprimirRelatorioCompras() { sysAlert("Imprimir relatório de contas a pagar."); }
-        function imprimirCupomCompra() { sysAlert("Imprimir cupom de compra."); }
+        // --- IMPRESSÃO COMPRAS (CONTAS A PAGAR) ---
+        function imprimirCupomCompra() {
+            const c = document.querySelectorAll('.check-pagar:checked');
+            if(!c.length) return sysAlert("Selecione pelo menos uma compra para imprimir.");
+            let html = '';
+            c.forEach(cb => {
+                const cp = db.compras.find(x => x.id == cb.value);
+                if(cp) {
+                    html += `<div class="pagina-cupom">
+                        <div style="text-align:center; font-family:monospace; font-size:14px;">
+                            <img src="${LOGO_URL}" style="max-height: 50px;"><br>
+                            COMPRA #${formatId(cp.id)}<br>
+                            <hr>
+                            Fornecedor: ${cp.fornecedor}<br>
+                            Data: ${cp.data.split('-').reverse().join('/')}<br>
+                            Total: R$ ${formatCurrency(cp.total)}<br>
+                            <hr>
+                            ITENS:<br>
+                            ${cp.itens}<br>
+                            <hr>
+                            PGTO: ${cp.pgtoString}<br>
+                        </div>
+                    </div><br><br><br>--✂--<br><br>`;
+                }
+            });
+            document.getElementById('receipt-print').innerHTML = html;
+            document.getElementById('receipt-print').style.width = '76mm';
+            setTimeout(() => { window.print(); setTimeout(() => document.getElementById('receipt-print').innerHTML='', 500); }, 300);
+        }
+
+        function imprimirRelatorioCompras() {
+            document.getElementById('modal-impressao-agrupada').style.display='flex';
+            let tbody = ''; let total = 0;
+            document.querySelectorAll('#pagar-table-body tr').forEach(tr => {
+                let cols = tr.querySelectorAll('td');
+                if(cols.length > 5) {
+                   tbody += `<tr>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[1].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[2].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[3].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[4].innerText}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[5].innerText.split('\n')[0]}</td>
+                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[6].innerText}</td>
+                   </tr>`;
+                   total += strToFloat(cols[5].innerText.split('\n')[0].replace('R$','').trim());
+                }
+            });
+            let h = `<h3 style="text-align:center;font-family:sans-serif;">Relatório de Compras (Contas a Pagar)</h3>
+            <table style="width:100%; border-collapse: collapse; text-align:left; font-family:sans-serif; font-size:12px;">
+                <thead>
+                    <tr style="background:#f3f4f6;">
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Data</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Fornecedor</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Vencimento</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Total</th>
+                        <th style="padding:8px;border-bottom:2px solid #ccc;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>${tbody}</tbody>
+            </table>
+            <h3 style="text-align:right; font-family:sans-serif; margin-top:20px;">Total Visível: R$ ${formatCurrency(total)}</h3>`;
+            document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+        }
 
         function updateDashboard() { const hj = new Date().toISOString().split('T')[0]; const ms = hj.substring(0,7); document.getElementById('dash-hoje').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>(v.dataPedido||v.data.split('T')[0])===hj && v.status==='Ativa').reduce((a,b)=>a+b.total,0))}`; document.getElementById('dash-mes').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>(v.dataPedido||v.data.split('T')[0]).startsWith(ms) && v.status==='Ativa').reduce((a,b)=>a+b.total,0))}`; document.getElementById('dash-pendente').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>v.vencimento && !v.pagamento.startsWith('Acertado') && v.status==='Ativa').reduce((a,b)=>a+(b.total-(b.valorPago||0)),0))}`; }
 
