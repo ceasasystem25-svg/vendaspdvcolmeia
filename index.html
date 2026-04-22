@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.41 - Completo</title>
+    <title>Sistema de Vendas Pro v10.42 - Formatação 10.30 Restaurada</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; --payable: #6366f1; }
         
@@ -102,19 +102,44 @@
         .tab-btn-payable:hover { color: var(--payable); }
         .tab-btn-payable.active-tab { color: var(--payable); border-bottom: 3px solid var(--payable); }
 
-        /* ESTILOS DE IMPRESSÃO FIDELIDADE 10.30 */
+        /* ESTILOS DE IMPRESSÃO FIDELIDADE 10.30 - CUPOM E A4 EXATOS */
         @media screen { #receipt-print { display: none; } }
         @media print {
             @page { margin: 0; } 
             body { margin: 0; padding: 0; background: #fff; height: auto !important; overflow: visible !important; }
             header, .container, .modal-overlay, .no-print { display: none !important; }
-            #receipt-print { display: block !important; position: relative !important; width: 100%; margin: 0 auto; padding: 0; box-sizing: border-box; color: #000 !important; background: transparent; font-family: 'Courier New', Courier, monospace; font-size: 14px !important; line-height: 1.2; text-transform: uppercase; }
+            
+            #receipt-print { 
+                display: block !important; 
+                position: relative !important; 
+                width: 100%; 
+                margin: 0; 
+                padding: 0; 
+                color: #000 !important; 
+                background: #fff; 
+            }
             #receipt-print * { color: #000 !important; visibility: visible; }
-            .pagina-cupom { width: 76mm; margin: 0 auto; padding: 0 5mm; box-sizing: border-box; page-break-after: always; break-after: page; }
-            .pagina-a4 { width: 210mm; margin: 0 auto; padding: 10mm; box-sizing: border-box; font-family: sans-serif; page-break-after: always; break-after: page;}
-            .line-dashed { border-top: 1px dashed #000; margin: 10px 0; }
-            .text-center { text-align: center; }
-            .text-right { text-align: right; }
+            
+            /* Classe para o Cupom Térmico (80mm) */
+            .pagina-cupom { 
+                width: 80mm; 
+                margin: 0 auto; 
+                padding: 4mm; 
+                box-sizing: border-box; 
+                page-break-after: always; 
+                break-after: page; 
+            }
+            
+            /* Classe para Relatórios A4 */
+            .pagina-a4 { 
+                width: 210mm; 
+                margin: 0 auto; 
+                padding: 15mm; 
+                box-sizing: border-box; 
+                font-family: Arial, sans-serif; 
+                page-break-after: always; 
+                break-after: page;
+            }
         }
     </style>
 </head>
@@ -373,7 +398,7 @@
                                     <button class="btn-acao btn-acao-cancel" onclick="cancelarCompraSelecionada()">CANCELAR COMPRA ❌</button>
                                 </div>
                                 <div style="border-left: 1px solid #cbd5e1; height: 25px; margin: 0 2px;"></div>
-                                <button class="btn btn-ghost" onclick="imprimirRelatorioCompras()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">🖨️ Relatório</button>
+                                <button class="btn btn-ghost" onclick="imprimirRelatorioCompras()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">🖨️ Relatório A4</button>
                                 <button class="btn btn-payable" onclick="openCompraModal()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">+ Nova Compra</button>
                             </div>
                         </div>
@@ -797,7 +822,7 @@
         function highlightRow(cb, type = '') { const tr = cb.closest('tr'); if(cb.checked) { tr.classList.add(type === 'payable' ? 'selected-row-payable' : 'selected-row'); } else { tr.classList.remove('selected-row-payable'); tr.classList.remove('selected-row'); } }
         function toggleTodasVendas(source, classe) { document.querySelectorAll(`.${classe}`).forEach(cb => { cb.checked = source.checked; highlightRow(cb, classe==='check-pagar'?'payable':''); }); }
 
-        // --- IMPRESSÕES E RELATÓRIOS (CORREÇÃO TOTAL 10.30) ---
+        // --- IMPRESSÕES E RELATÓRIOS (RESTAURAÇÃO EXATA 10.30) ---
         function abrirModalImpressaoOpcoes(posVenda = false, vId = null) { 
             if(!posVenda) {
                 const c = document.querySelectorAll('.check-venda:checked'); 
@@ -827,40 +852,61 @@
             lancarImpressao(html);
         }
         
+        // FUNÇÃO GERADORA DE CUPOM TÉRMICO FIDELIDADE 10.30
         function gerarHtmlCupom(v, via) { 
             const dataFmt = (v.dataPedido || v.data).split('T')[0].split('-').reverse().join('/');
             let cabecalho = `
-                <div class="text-center">
-                    <img src="${LOGO_URL}" style="max-height: 45px; margin-bottom: 5px;"><br>
-                    <b style="font-size:16px;">Venda #${formatId(v.id)}</b><br>
-                    VIA ${via.toUpperCase()}
+                <div style="text-align: center;">
+                    <img src="${LOGO_URL}" style="max-height: 50px; margin-bottom: 5px;"><br>
+                    <b style="font-size:16px;">RECIBO DE VENDA #${formatId(v.id)}</b><br>
+                    <b>VIA: ${via.toUpperCase()}</b>
                 </div>
-                <div class="line-dashed"></div>`;
+                <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;">`;
                 
-            let infoCli = `<b>Data:</b> ${dataFmt}<br><b>Cliente:</b> ${v.cliente}<br><b>Vendedor:</b> ${v.vendedor || '-'}<br>`;
+            let infoCli = `
+                <b>Data:</b> ${dataFmt}<br>
+                <b>Cliente:</b> ${v.cliente}<br>
+                <b>Vendedor:</b> ${v.vendedor || '-'}<br>`;
+                
             if (via === 'Carregador' && v.clienteId) {
                 const c = db.clientes.find(x => x.id == v.clienteId);
                 if(c) infoCli += `<b>Endereço:</b> ${c.rua||''}, ${c.num||''} - ${c.cidade||''}<br>`;
             }
+            infoCli += `<hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;"><b>ITENS:</b><br>`;
 
-            let thead = `<tr><th align="left">PRODUTO</th><th align="center">QTD</th>${via !== 'Carregador' ? '<th align="right">TOTAL</th>' : ''}</tr>`;
-            let tbody = (v.carrinho || []).map(i => `<tr><td style="padding:4px 0">${i.nome}</td><td align="center" style="padding:4px 0">${i.qtd} ${i.unidade||'UN'}</td>${via !== 'Carregador' ? `<td align="right" style="padding:4px 0">R$ ${formatCurrency(i.totalItem)}</td>` : ''}</tr>`).join('');
-            let tabelaItens = `<table style="width:100%; font-size:13px; margin-top:10px;"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+            let itens = '';
+            (v.carrinho || []).forEach(i => {
+                if (via === 'Carregador') {
+                     itens += `<div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                  <span><b>${i.qtd} ${i.unidade||'UN'}</b> - ${i.nome}</span>
+                               </div>`;
+                } else {
+                     itens += `<div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                                  <span>${i.qtd}x ${i.nome}</span>
+                                  <span>R$ ${formatCurrency(i.totalItem)}</span>
+                               </div>`;
+                }
+            });
 
             let fechamento = '';
             if (via !== 'Carregador') {
                 fechamento = `
-                    <div class="line-dashed"></div>
-                    <div class="text-right" style="font-size:16px;"><b>TOTAL: R$ ${formatCurrency(v.total)}</b></div>
-                    <div style="font-size:12px; margin-top:5px;"><b>Pagamento:</b><br>${(v.pagamento||'').replace(/\|/g, '<br>')}</div>
+                    <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:16px;">
+                        <b>TOTAL:</b>
+                        <b>R$ ${formatCurrency(v.total)}</b>
+                    </div>
+                    <div style="margin-top:5px;"><b>PGTO:</b><br>${(v.pagamento||'').replace(/\|/g, '<br>')}</div>
                 `;
             }
 
             if (via === 'Empresa') {
-                fechamento += `<br><br><br><div class="text-center">________________________________<br>Assinatura do Recebedor</div>`;
+                fechamento += `<br><br><br><div style="text-align:center;">________________________________<br>Assinatura do Recebedor</div>`;
             }
 
-            return `<div style="font-family:monospace; font-size:13px;">${cabecalho}${infoCli}<div class="line-dashed"></div>${tabelaItens}${fechamento}</div>`;
+            return `<div style="font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #000; width: 100%; box-sizing: border-box; padding: 0;">
+                        ${cabecalho}${infoCli}${itens}${fechamento}
+                    </div>`;
         }
         
         function lancarImpressao(html) {
@@ -884,7 +930,7 @@
 
         function abrirModalImpressaoAgrupada() { 
             const checks = document.querySelectorAll('.check-venda:checked');
-            if(!checks.length) return sysAlert("Selecione as vendas que deseja incluir no relatório.");
+            if(!checks.length) return sysAlert("Selecione as vendas que deseja incluir no relatório (use os quadradinhos ao lado da venda).");
             
             const ids = Array.from(checks).map(cb => parseInt(cb.value));
             const vendas = db.vendas.filter(v => ids.includes(v.id));
@@ -904,8 +950,8 @@
             
             let h = `
             <div style="font-family: sans-serif;">
-                <h2 class="text-center" style="margin-bottom:20px;">Relatório de Vendas (Lote Selecionado)</h2>
-                <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <h2 style="text-align:center; margin-bottom:20px;">Relatório de Vendas (Lote Selecionado)</h2>
+                <table style="width:100%; border-collapse: collapse; font-size:14px;">
                     <thead>
                         <tr style="background:#f3f4f6;">
                             <th align="left" style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
@@ -918,14 +964,14 @@
                     </thead>
                     <tbody>${tbody}</tbody>
                 </table>
-                <h3 class="text-right" style="margin-top:20px; border-top: 2px solid #ccc; padding-top:10px;">Total Vendas Ativas: R$ ${formatCurrency(total)}</h3>
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top:10px;">Total Vendas Ativas: R$ ${formatCurrency(total)}</h3>
             </div>`;
             abrirModalA4("Relatório de Lote", h);
         }
         
         function gerarRomaneio() { 
             const checks = document.querySelectorAll('.check-venda:checked');
-            if(!checks.length) return sysAlert("Selecione as vendas para consolidar o romaneio.");
+            if(!checks.length) return sysAlert("Selecione as vendas (nos quadradinhos à esquerda) para consolidar o romaneio.");
             
             let itensMap = {};
             let countVendas = 0;
@@ -946,19 +992,19 @@
             let tbody = Object.values(itensMap).sort((a,b) => a.nome.localeCompare(b.nome)).map(item => `
                 <tr>
                     <td style="padding:12px 8px; border-bottom:1px solid #e5e7eb;">${item.nome}</td>
-                    <td align="center" style="padding:12px 8px; border-bottom:1px solid #e5e7eb; font-size:16px;"><b>${item.qtd}</b> ${item.unidade}</td>
-                    <td align="center" style="padding:12px 8px; border-bottom:1px solid #e5e7eb;">[ &nbsp;&nbsp;&nbsp;&nbsp; ]</td>
+                    <td align="center" style="padding:12px 8px; border-bottom:1px solid #e5e7eb; font-size:18px;"><b>${item.qtd}</b> ${item.unidade}</td>
+                    <td align="center" style="padding:12px 8px; border-bottom:1px solid #e5e7eb; font-size: 16px;">[ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]</td>
                 </tr>
             `).join('');
             
             let h = `
             <div style="font-family: sans-serif;">
-                <div class="text-center" style="margin-bottom: 30px;">
+                <div style="text-align:center; margin-bottom: 30px;">
                     <h2 style="margin: 0; text-transform: uppercase;">Romaneio de Separação / Carga</h2>
                     <p style="margin: 5px 0;">Vendas consolidadas: <b>${countVendas}</b></p>
                     <p style="margin: 0; font-size: 12px; color: #666;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
                 </div>
-                <table style="width:100%; border-collapse: collapse; font-size:14px;">
+                <table style="width:100%; border-collapse: collapse; font-size:15px;">
                     <thead>
                         <tr style="background:#f3f4f6;">
                             <th align="left" style="padding:12px 8px; border-bottom:2px solid #ccc;">Produto</th>
@@ -996,8 +1042,8 @@
             });
             let h = `
             <div style="font-family: sans-serif;">
-                <h2 class="text-center" style="margin-bottom: 20px;">Relatório de Contas a Receber</h2>
-                <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <h2 style="text-align:center; margin-bottom: 20px;">Relatório de Contas a Receber</h2>
+                <table style="width:100%; border-collapse: collapse; font-size:14px;">
                     <thead>
                         <tr style="background:#f3f4f6;">
                             <th align="left" style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
@@ -1009,7 +1055,7 @@
                     </thead>
                     <tbody>${tbody}</tbody>
                 </table>
-                <h3 class="text-right" style="margin-top:20px; border-top: 2px solid #ccc; padding-top: 10px;">
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top: 10px;">
                     Soma Visível: R$ ${formatCurrency(total)}
                 </h3>
             </div>`;
@@ -1123,26 +1169,28 @@
             c.forEach(cb => {
                 const cp = db.compras.find(x => x.id == cb.value);
                 if(cp) {
-                    let itensStr = (cp.carrinho || []).map(i => `<tr><td style="padding:4px 0">${i.nome}</td><td align="center" style="padding:4px 0">${i.qtd} ${i.unidade||'UN'}</td><td align="right" style="padding:4px 0">R$ ${formatCurrency(i.totalItem)}</td></tr>`).join('');
-                    let tabela = `<table style="width:100%; font-size:13px; margin-top:10px;"><thead><tr><th align="left">PRODUTO</th><th align="center">QTD</th><th align="right">TOTAL</th></tr></thead><tbody>${itensStr}</tbody></table>`;
+                    let itensStr = (cp.carrinho || []).map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${i.qtd}x ${i.nome}</span><span>R$ ${formatCurrency(i.totalItem)}</span></div>`).join('');
                     
                     html += `<div class="pagina-cupom">
-                        <div style="font-family:monospace; font-size:13px;">
+                        <div style="font-family: 'Courier New', Courier, monospace; font-size:14px; width:100%; box-sizing:border-box;">
                             <div class="text-center">
                                 <img src="${LOGO_URL}" style="max-height: 45px; margin-bottom: 5px;"><br>
                                 <b style="font-size: 16px;">RECIBO DE COMPRA #${formatId(cp.id)}</b>
                             </div>
-                            <div class="line-dashed"></div>
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;">
                             <b>Data:</b> ${cp.data.split('-').reverse().join('/')}<br>
                             <b>Fornecedor:</b> ${cp.fornecedor}
-                            <div class="line-dashed"></div>
-                            ${tabela}
-                            <div class="line-dashed"></div>
-                            <div class="text-right" style="font-size:16px;"><b>TOTAL: R$ ${formatCurrency(cp.total)}</b></div>
-                            <div style="font-size:12px; margin-top:5px;"><b>PGTO:</b><br>${(cp.pgtoString||'').replace(/\|/g, '<br>')}</div>
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;">
+                            <b>ITENS:</b><br>
+                            ${itensStr}
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 8px 0;">
+                            <div style="display:flex; justify-content:space-between; font-size:16px;">
+                                <b>TOTAL:</b><b>R$ ${formatCurrency(cp.total)}</b>
+                            </div>
+                            <div style="margin-top:5px;"><b>PGTO:</b><br>${(cp.pgtoString||'').replace(/\|/g, '<br>')}</div>
                             <br>
                         </div>
-                    </div><br><br><br>--✂--<br><br>`;
+                    </div>`;
                 }
             });
             lancarImpressao(html);
@@ -1167,8 +1215,8 @@
             });
             let h = `
             <div style="font-family: sans-serif;">
-                <h2 class="text-center" style="margin-bottom: 20px; color: var(--payable);">Relatório de Compras (Contas a Pagar)</h2>
-                <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <h2 style="text-align:center; margin-bottom: 20px; color: var(--payable);">Relatório de Compras (Contas a Pagar)</h2>
+                <table style="width:100%; border-collapse: collapse; font-size:14px;">
                     <thead>
                         <tr style="background:#f3f4f6;">
                             <th align="left" style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
@@ -1181,7 +1229,7 @@
                     </thead>
                     <tbody>${tbody}</tbody>
                 </table>
-                <h3 class="text-right" style="margin-top:20px; border-top: 2px solid #ccc; padding-top: 10px;">
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top: 10px;">
                     Soma Visível: R$ ${formatCurrency(total)}
                 </h3>
             </div>`;
