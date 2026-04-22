@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.39 - Impressão Compras</title>
+    <title>Sistema de Vendas Pro v10.40 - Correção Impressões</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; --payable: #6366f1; }
         
@@ -107,7 +107,7 @@
             @page { margin: 0; } 
             body { margin: 0; padding: 0; background: #fff; height: auto !important; overflow: visible !important; }
             header, .container, .modal-overlay, .no-print { display: none !important; }
-            #receipt-print { display: block !important; position: relative !important; width: 76mm; margin: 0 auto; padding: 0; box-sizing: border-box; color: #000 !important; background: transparent; font-family: 'Courier New', Courier, monospace; font-size: 14px !important; font-weight: 900 !important; line-height: 1.2; text-transform: uppercase; }
+            #receipt-print { display: block !important; position: relative !important; margin: 0 auto; padding: 0; box-sizing: border-box; color: #000 !important; background: transparent; font-family: 'Courier New', Courier, monospace; font-size: 14px !important; line-height: 1.2; text-transform: uppercase; }
             #receipt-print * { color: #000 !important; visibility: visible; }
             .pagina-cupom { page-break-after: always; break-after: page; }
         }
@@ -368,7 +368,7 @@
                                     <button class="btn-acao btn-acao-cancel" onclick="cancelarCompraSelecionada()">CANCELAR COMPRA ❌</button>
                                 </div>
                                 <div style="border-left: 1px solid #cbd5e1; height: 25px; margin: 0 2px;"></div>
-                                <button class="btn btn-ghost" onclick="imprimirRelatorioCompras()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">🖨️ Relatório</button>
+                                <button class="btn btn-ghost" onclick="imprimirRelatorioCompras()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">🖨️ Relatório A4</button>
                                 <button class="btn btn-payable" onclick="openCompraModal()" style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">+ Nova Compra</button>
                             </div>
                         </div>
@@ -588,10 +588,14 @@
     
     <div class="modal-overlay" id="modal-impressao-agrupada">
         <div class="modal" style="max-width: 1000px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-                <h2 style="margin:0">Relatório Lote</h2><div><button class="btn btn-ghost" onclick="fecharModalImpressaoAgrupada()" style="margin-right: 10px;">Cancelar</button><button class="btn btn-primary" onclick="confirmarImpressaoAgrupada()">🖨️ Imprimir</button></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                <h2 style="margin:0">Visualização de Impressão (A4)</h2>
+                <div>
+                    <button class="btn btn-ghost" onclick="fecharModalImpressaoAgrupada()" style="margin-right: 10px;">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmarImpressaoAgrupada()">🖨️ Imprimir Agora</button>
+                </div>
             </div>
-            <div id="preview-relatorio-agrupado" style="border: 1px solid #ccc; padding: 20px; background: white; max-height: 60vh; overflow-y: auto;"></div>
+            <div id="preview-relatorio-agrupado" style="padding: 20px; background: white; max-height: 65vh; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -599,7 +603,7 @@
         <div class="modal"><h3 id="sys-modal-title">Aviso</h3><p id="sys-modal-msg"></p><div style="display: flex; justify-content: center; gap: 10px;"><button class="btn btn-ghost" id="sys-btn-cancel" style="display: none;">Cancelar</button><button class="btn btn-primary" id="sys-btn-ok">OK</button></div></div>
     </div>
 
-    <div id="receipt-print" style="padding: 0 5mm;"></div>
+    <div id="receipt-print"></div>
 
     <script>
         // Funções Base
@@ -654,7 +658,7 @@
             } 
         }
 
-        // --- ALTERNAR ABAS: CONTAS A PAGAR (ATUALIZADO PARA 3 ABAS) ---
+        // --- ALTERNAR ABAS: CONTAS A PAGAR ---
         function switchPagarTab(tab) {
             ['lista', 'hist', 'forn'].forEach(t => {
                 const btn = document.getElementById(`btn-tab-pagar-${t === 'hist' ? 'hist' : (t==='forn'?'forn':'lista')}`);
@@ -774,16 +778,166 @@
         function highlightRow(cb, type = '') { const tr = cb.closest('tr'); if(cb.checked) { tr.classList.add(type === 'payable' ? 'selected-row-payable' : 'selected-row'); } else { tr.classList.remove('selected-row-payable'); tr.classList.remove('selected-row'); } }
         function toggleTodasVendas(source, classe) { document.querySelectorAll(`.${classe}`).forEach(cb => { cb.checked = source.checked; highlightRow(cb, classe==='check-pagar'?'payable':''); }); }
 
-        // --- IMPRESSÕES ---
-        function abrirModalImpressaoOpcoes() { const c=document.querySelectorAll('.check-venda:checked'); if(!c.length) return sysAlert("Selecione."); document.getElementById('modal-imprimir-opcoes').style.display='flex'; }
+        // --- IMPRESSÕES E RELATÓRIOS ---
+        function abrirModalImpressaoOpcoes() { const c=document.querySelectorAll('.check-venda:checked'); if(!c.length) return sysAlert("Selecione a(s) venda(s) na caixa de seleção para imprimir."); document.getElementById('modal-imprimir-opcoes').style.display='flex'; }
         function fecharModalImpressaoOpcoes() { document.getElementById('modal-imprimir-opcoes').style.display='none'; }
-        function confirmarImpressaoOpcoes() { const checks = document.querySelectorAll('.check-venda:checked'); const ids = Array.from(checks).map(cb => parseInt(cb.value)); const v = db.vendas.filter(x => ids.includes(x.id)); let t=[]; if(document.getElementById('cb-print-empresa').checked) t.push('empresa'); if(document.getElementById('cb-print-cliente').checked) t.push('cliente'); if(document.getElementById('cb-print-carregador').checked) t.push('carregador'); fecharModalImpressaoOpcoes(); printSelectedTypes(v, t); }
-        function gerarHtmlCupom(v, t) { return `<div style="text-align:center; font-family:monospace; font-size:14px;"><img src="${LOGO_URL}" style="max-height: 50px;"><br>VENDA #${formatId(v.id)}<br>VIA: ${t.toUpperCase()}<hr>Cliente: ${v.cliente}<br>Total: R$ ${formatCurrency(v.total)}<hr></div>`; }
-        function printSelectedTypes(vendas, tipos) { let html=''; vendas.forEach(v=>{ tipos.forEach(t=>{ html+=`<div class="pagina-cupom">${gerarHtmlCupom(v,t)}<br><br><br>--✂--<br><br></div>`; }); }); document.getElementById('receipt-print').innerHTML=html; document.getElementById('receipt-print').style.width='76mm'; setTimeout(()=>{ window.print(); setTimeout(()=>document.getElementById('receipt-print').innerHTML='',500); }, 300); }
-        function abrirModalImpressaoAgrupada() { document.getElementById('modal-impressao-agrupada').style.display='flex'; document.getElementById('preview-relatorio-agrupado').innerHTML="<h3>Relatório Simplificado (Visualização)</h3>"; }
+        function confirmarImpressaoOpcoes() { const checks = document.querySelectorAll('.check-venda:checked'); const ids = Array.from(checks).map(cb => parseInt(cb.value)); const v = db.vendas.filter(x => ids.includes(x.id)); let t=[]; if(document.getElementById('cb-print-empresa').checked) t.push('Empresa'); if(document.getElementById('cb-print-cliente').checked) t.push('Cliente'); if(document.getElementById('cb-print-carregador').checked) t.push('Carregador'); fecharModalImpressaoOpcoes(); printSelectedTypes(v, t); }
+        
+        function gerarHtmlCupom(v, t) { 
+            let itensStr = (v.carrinho || []).map(i => `<div style="display:flex; justify-content:space-between; margin-bottom: 3px;"><span>${i.qtd}x ${i.nome}</span><span>R$ ${formatCurrency(i.totalItem)}</span></div>`).join('');
+            let dataFormatada = v.dataPedido ? v.dataPedido.split('-').reverse().join('/') : v.data.split('T')[0].split('-').reverse().join('/');
+            
+            return `<div style="font-family:monospace; font-size:14px; padding: 0 5px; width: 100%; box-sizing: border-box;">
+                <div style="text-align:center;">
+                    <img src="${LOGO_URL}" style="max-height: 45px; margin-bottom: 5px;"><br>
+                    <b style="font-size: 16px;">RECIBO DE VENDA #${formatId(v.id)}</b><br>
+                    VIA: ${t.toUpperCase()}
+                </div>
+                <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                <b>Data:</b> ${dataFormatada}<br>
+                <b>Cliente:</b> ${v.cliente}<br>
+                <b>Vendedor:</b> ${v.vendedor||'-'}
+                <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                <b>ITENS:</b><br>
+                ${itensStr}
+                <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                <div style="display:flex; justify-content:space-between; font-size: 16px; margin-bottom: 5px;">
+                    <b>TOTAL:</b><b>R$ ${formatCurrency(v.total)}</b>
+                </div>
+                <div><b>PGTO:</b><br>${(v.pagamento||'').replace(/\|/g, '<br>')}</div>
+                <br>
+            </div>`; 
+        }
+        
+        function printSelectedTypes(vendas, tipos) { 
+            let html=''; 
+            vendas.forEach(v=>{ tipos.forEach(t=>{ html+=`<div class="pagina-cupom" style="width: 76mm;">${gerarHtmlCupom(v,t)}<br><br><br>--✂--<br><br></div>`; }); }); 
+            document.getElementById('receipt-print').innerHTML=html; 
+            setTimeout(()=>{ window.print(); setTimeout(()=>document.getElementById('receipt-print').innerHTML='',500); }, 300); 
+        }
+        
+        // --- RELATÓRIO LOTE (A4 VENDAS) ---
+        function abrirModalImpressaoAgrupada() { 
+            let tbody = ''; let total = 0; let count = 0;
+            document.querySelectorAll('#sales-table-body tr').forEach(tr => {
+                if(tr.style.display !== 'none' && tr.innerText.trim() !== '') {
+                    let cols = tr.querySelectorAll('td');
+                    if(cols.length > 5) {
+                        let id = cols[1].innerText;
+                        let data = cols[2].innerText.split('\n')[0];
+                        let cli = cols[3].innerText;
+                        let valStr = cols[5].innerText.replace('R$', '').trim();
+                        let stat = cols[7].innerText;
+                        
+                        if(!stat.includes('Cancelada')) { total += strToFloat(valStr); }
+                        
+                        tbody += `<tr>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${id}</td>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${data}</td>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cli}</td>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[4].innerText}</td>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">R$ ${valStr}</td>
+                            <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${stat}</td>
+                        </tr>`;
+                        count++;
+                    }
+                }
+            });
+            
+            let h = `
+            <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; width: 100%; box-sizing: border-box;">
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Relatório de Vendas</h2>
+                    <p style="margin: 5px 0; color: #6b7280;">Registros listados: ${count}</p>
+                </div>
+                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
+                    <thead>
+                        <tr style="background:#f3f4f6;">
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Nº</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Data</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Cliente</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Vendedor</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Total</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 10px;">
+                    Total (Ativas): R$ ${formatCurrency(total)}
+                </h3>
+            </div>`;
+            
+            document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+            document.getElementById('modal-impressao-agrupada').style.display='flex'; 
+        }
+        
+        function confirmarImpressaoAgrupada() { 
+            document.getElementById('receipt-print').innerHTML = document.getElementById('preview-relatorio-agrupado').innerHTML; 
+            window.print(); 
+            setTimeout(() => {
+                document.getElementById('receipt-print').innerHTML='';
+                fecharModalImpressaoAgrupada();
+            }, 500); 
+        }
         function fecharModalImpressaoAgrupada() { document.getElementById('modal-impressao-agrupada').style.display='none'; }
-        function confirmarImpressaoAgrupada() { document.getElementById('receipt-print').style.width='100%'; document.getElementById('receipt-print').innerHTML=document.getElementById('preview-relatorio-agrupado').innerHTML; window.print(); setTimeout(()=>document.getElementById('receipt-print').innerHTML='',500); }
-        function gerarRomaneio() { sysAlert("Módulo Romaneio acionado!"); }
+        
+        // --- GERAR ROMANEIO ---
+        function gerarRomaneio() { 
+            const checks = document.querySelectorAll('.check-venda:checked');
+            if(!checks.length) return sysAlert("Selecione as vendas (caixinha à esquerda) para gerar o romaneio.");
+            
+            let itensMap = {};
+            let countVendas = 0;
+            
+            checks.forEach(cb => {
+                const v = db.vendas.find(x => x.id == cb.value);
+                if(v && v.status === 'Ativa') {
+                    countVendas++;
+                    if(v.carrinho) {
+                        v.carrinho.forEach(item => {
+                            if(!itensMap[item.prodId]) {
+                                itensMap[item.prodId] = { nome: item.nome, qtd: 0, unidade: item.unidade||'UN' };
+                            }
+                            itensMap[item.prodId].qtd += parseFloat(item.qtd);
+                        });
+                    }
+                }
+            });
+            
+            if(countVendas === 0) return sysAlert("Nenhuma venda ativa selecionada para o romaneio.");
+            
+            let tbody = '';
+            Object.values(itensMap).sort((a,b) => a.nome.localeCompare(b.nome)).forEach(item => {
+                tbody += `<tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">${item.nome}</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb; text-align:center; font-size: 15px;"><b>${item.qtd}</b> ${item.unidade}</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb; text-align:center;">[ &nbsp;&nbsp;&nbsp;&nbsp; ]</td>
+                </tr>`;
+            });
+            
+            let h = `
+            <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; width: 100%; box-sizing: border-box;">
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; text-transform: uppercase;">Romaneio de Separação / Carga</h2>
+                    <p style="margin: 5px 0; color: #4b5563;">Vendas consolidadas: <b>${countVendas}</b></p>
+                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:14px; margin-top: 20px;">
+                    <thead>
+                        <tr style="background:#f3f4f6;">
+                            <th style="padding:12px;border-bottom:2px solid #d1d5db;">Produto</th>
+                            <th style="padding:12px;border-bottom:2px solid #d1d5db; text-align:center;">Quantidade Total</th>
+                            <th style="padding:12px;border-bottom:2px solid #d1d5db; text-align:center; width: 100px;">Conferência</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+            </div>`;
+            
+            document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+            document.getElementById('modal-impressao-agrupada').style.display='flex';
+        }
 
         // --- ACERTO DE CONTAS (RECEBIMENTOS) ---
         let filtroAcertoAtual = 'Todos';
@@ -792,37 +946,42 @@
         function renderHistorico() { const tb=document.getElementById('historico-table-body'); const b=(document.getElementById('f-hist-busca').value||'').toLowerCase(); const ini=document.getElementById('f-hist-inicio').value; const fim=document.getElementById('f-hist-fim').value; let l=[]; db.vendas.filter(v=>(v.historicoPgto&&v.historicoPgto.length>0)||v.pagamento.startsWith('Acertado')).forEach(v=>{ if(v.historicoPgto&&v.historicoPgto.length>0){ v.historicoPgto.forEach(p=>{ const dt=p.data.split('T')[0]; if((!b||v.cliente.toLowerCase().includes(b))&&(!ini||dt>=ini)&&(!fim||dt<=fim)) l.push({dIso:p.data, vId:v.id, cl:v.cliente, met:p.metodo, val:p.valor}); }); } else if(v.dataBaixa) { const dt=v.dataBaixa.split('T')[0]; if((!b||v.cliente.toLowerCase().includes(b))&&(!ini||dt>=ini)&&(!fim||dt<=fim)) l.push({dIso:v.dataBaixa, vId:v.id, cl:v.cliente, met:v.pagamento.replace('Acertado (','').replace(')',''), val:v.total}); } }); l.sort((a,b)=>new Date(b.dIso)-new Date(a.dIso)); if(!l.length){ tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum registro.</td></tr>`; return; } tb.innerHTML=l.map(x=>{ const dt=new Date(x.dIso); return `<tr><td style="white-space:nowrap"><b>${dt.toLocaleDateString('pt-BR')}</b> <span style="color:#888;font-size:0.8rem">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span></td><td><b>#${formatId(x.vId)}</b></td><td>${x.cl}</td><td><span style="color:#059669;font-weight:bold">${x.met}</span></td><td style="white-space:nowrap"><b>R$ ${formatCurrency(x.val)}</b></td><td style="text-align:center"><button class="btn btn-ghost" onclick="cancelarBaixaIndividual(${x.vId})" style="padding:4px 8px;font-size:0.85rem;color:var(--danger);border-color:var(--danger)">❌ Desfazer</button></td></tr>`; }).join(''); }
         
         function imprimirRelatorioAcerto() { 
-            document.getElementById('modal-impressao-agrupada').style.display='flex';
             let tbody = ''; let total = 0;
             document.querySelectorAll('#acerto-table-body tr').forEach(tr => {
                 let cols = tr.querySelectorAll('td');
                 if(cols.length > 5 && tr.innerText !== 'Nenhuma conta.') {
                    let valStr = cols[4].innerText.split('\n')[0]; 
                    tbody += `<tr>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[1].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[2].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[3].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${valStr}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[5].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[1].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[2].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[3].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${valStr}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[5].innerText}</td>
                    </tr>`;
                    total += strToFloat(valStr.replace('R$','').trim());
                 }
             });
-            let h = `<h3 style="text-align:center;font-family:sans-serif;">Relatório de Contas a Receber</h3>
-            <table style="width:100%; border-collapse: collapse; text-align:left; font-family:sans-serif; font-size:12px;">
-                <thead>
-                    <tr style="background:#f3f4f6;">
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Cliente</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Vencimento</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Valor</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>${tbody}</tbody>
-            </table>
-            <h3 style="text-align:right; font-family:sans-serif; margin-top:20px;">Total Visível: R$ ${formatCurrency(total)}</h3>`;
+            let h = `
+            <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; width: 100%; box-sizing: border-box;">
+                <h2 style="text-align:center; margin-bottom: 20px;">Relatório de Contas a Receber</h2>
+                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
+                    <thead>
+                        <tr style="background:#f3f4f6;">
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Nº</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Cliente</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Vencimento</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Valor</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 10px;">
+                    Soma Total: R$ ${formatCurrency(total)}
+                </h3>
+            </div>`;
             document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+            document.getElementById('modal-impressao-agrupada').style.display='flex';
         }
         
         function abrirModalBaixa() { const c=document.querySelectorAll('.check-acerto:checked'); if(!c.length) return sysAlert("Selecione conta pendente."); let ht='<ul style="list-style:none;padding:0;margin:0;">'; let tot=0; let pg=0; c.forEach(cb=>{ const v=db.vendas.find(x=>x.id==cb.value); if(v){ if(!v.pagamento.startsWith('Acertado')){ let res=v.total-(v.valorPago||0); tot+=res; ht+=`<li style="padding:8px 5px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:0.9rem;"><span><b>#${formatId(v.id)}</b> - ${v.cliente}</span><b>R$ ${formatCurrency(res)}</b></li>`; } else pg++; } }); ht+='</ul>'; if(tot===0&&pg>0) return sysAlert("Já estão pagas!"); document.getElementById('lista-baixa').innerHTML=ht; document.getElementById('total-baixa-txt').innerText=`R$ ${formatCurrency(tot)}`; if(c.length===1&&tot>0) { document.getElementById('div-baixa-parcial').style.display='block'; document.getElementById('v-baixa-valor').value=tot.toFixed(2).replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); } else { document.getElementById('div-baixa-parcial').style.display='none'; } document.getElementById('modal-baixa').style.display='flex'; }
@@ -927,66 +1086,78 @@
         // --- IMPRESSÃO COMPRAS (CONTAS A PAGAR) ---
         function imprimirCupomCompra() {
             const c = document.querySelectorAll('.check-pagar:checked');
-            if(!c.length) return sysAlert("Selecione pelo menos uma compra para imprimir.");
+            if(!c.length) return sysAlert("Selecione na caixinha pelo menos uma compra para imprimir.");
             let html = '';
             c.forEach(cb => {
                 const cp = db.compras.find(x => x.id == cb.value);
                 if(cp) {
-                    html += `<div class="pagina-cupom">
-                        <div style="text-align:center; font-family:monospace; font-size:14px;">
-                            <img src="${LOGO_URL}" style="max-height: 50px;"><br>
-                            COMPRA #${formatId(cp.id)}<br>
-                            <hr>
-                            Fornecedor: ${cp.fornecedor}<br>
-                            Data: ${cp.data.split('-').reverse().join('/')}<br>
-                            Total: R$ ${formatCurrency(cp.total)}<br>
-                            <hr>
-                            ITENS:<br>
-                            ${cp.itens}<br>
-                            <hr>
-                            PGTO: ${cp.pgtoString}<br>
+                    let itensStr = (cp.carrinho || []).map(i => `<div style="display:flex; justify-content:space-between; margin-bottom: 3px;"><span>${i.qtd}x ${i.nome}</span><span>R$ ${formatCurrency(i.totalItem)}</span></div>`).join('');
+                    if(!itensStr && cp.itens) itensStr = cp.itens; // fallback
+                    
+                    html += `<div class="pagina-cupom" style="width: 76mm;">
+                        <div style="font-family:monospace; font-size:14px; padding: 0 5px; width: 100%; box-sizing: border-box;">
+                            <div style="text-align:center;">
+                                <img src="${LOGO_URL}" style="max-height: 45px; margin-bottom: 5px;"><br>
+                                <b style="font-size: 16px;">RECIBO DE COMPRA #${formatId(cp.id)}</b>
+                            </div>
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                            <b>Data:</b> ${cp.data.split('-').reverse().join('/')}<br>
+                            <b>Fornecedor:</b> ${cp.fornecedor}
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                            <b>ITENS:</b><br>
+                            ${itensStr}
+                            <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+                            <div style="display:flex; justify-content:space-between; font-size: 16px; margin-bottom: 5px;">
+                                <b>TOTAL:</b><b>R$ ${formatCurrency(cp.total)}</b>
+                            </div>
+                            <div><b>PGTO:</b><br>${(cp.pgtoString||'').replace(/\|/g, '<br>')}</div>
+                            <br>
                         </div>
                     </div><br><br><br>--✂--<br><br>`;
                 }
             });
             document.getElementById('receipt-print').innerHTML = html;
-            document.getElementById('receipt-print').style.width = '76mm';
             setTimeout(() => { window.print(); setTimeout(() => document.getElementById('receipt-print').innerHTML='', 500); }, 300);
         }
 
         function imprimirRelatorioCompras() {
-            document.getElementById('modal-impressao-agrupada').style.display='flex';
             let tbody = ''; let total = 0;
             document.querySelectorAll('#pagar-table-body tr').forEach(tr => {
                 let cols = tr.querySelectorAll('td');
                 if(cols.length > 5) {
                    tbody += `<tr>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[1].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[2].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[3].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[4].innerText}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[5].innerText.split('\n')[0]}</td>
-                    <td style="padding:5px;border-bottom:1px solid #ccc;">${cols[6].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[1].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[2].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[3].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[4].innerText}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[5].innerText.split('\n')[0]}</td>
+                    <td style="padding:6px;border-bottom:1px solid #e5e7eb;">${cols[6].innerText}</td>
                    </tr>`;
                    total += strToFloat(cols[5].innerText.split('\n')[0].replace('R$','').trim());
                 }
             });
-            let h = `<h3 style="text-align:center;font-family:sans-serif;">Relatório de Compras (Contas a Pagar)</h3>
-            <table style="width:100%; border-collapse: collapse; text-align:left; font-family:sans-serif; font-size:12px;">
-                <thead>
-                    <tr style="background:#f3f4f6;">
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Nº</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Data</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Fornecedor</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Vencimento</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Total</th>
-                        <th style="padding:8px;border-bottom:2px solid #ccc;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>${tbody}</tbody>
-            </table>
-            <h3 style="text-align:right; font-family:sans-serif; margin-top:20px;">Total Visível: R$ ${formatCurrency(total)}</h3>`;
+            let h = `
+            <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; width: 100%; box-sizing: border-box;">
+                <h2 style="text-align:center; margin-bottom: 20px; color: var(--payable);">Relatório de Compras (Contas a Pagar)</h2>
+                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
+                    <thead>
+                        <tr style="background:#f3f4f6;">
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Nº</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Data</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Fornecedor</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Vencimento</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Total</th>
+                            <th style="padding:8px;border-bottom:2px solid #d1d5db;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+                <h3 style="text-align:right; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 10px;">
+                    Total Visível: R$ ${formatCurrency(total)}
+                </h3>
+            </div>`;
             document.getElementById('preview-relatorio-agrupado').innerHTML = h;
+            document.getElementById('modal-impressao-agrupada').style.display='flex';
         }
 
         function updateDashboard() { const hj = new Date().toISOString().split('T')[0]; const ms = hj.substring(0,7); document.getElementById('dash-hoje').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>(v.dataPedido||v.data.split('T')[0])===hj && v.status==='Ativa').reduce((a,b)=>a+b.total,0))}`; document.getElementById('dash-mes').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>(v.dataPedido||v.data.split('T')[0]).startsWith(ms) && v.status==='Ativa').reduce((a,b)=>a+b.total,0))}`; document.getElementById('dash-pendente').innerText = `R$ ${formatCurrency(db.vendas.filter(v=>v.vencimento && !v.pagamento.startsWith('Acertado') && v.status==='Ativa').reduce((a,b)=>a+(b.total-(b.valorPago||0)),0))}`; }
