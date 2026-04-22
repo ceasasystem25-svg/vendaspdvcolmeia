@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.36 - Correção Fornecedores</title>
+    <title>Sistema de Vendas Pro v10.37 - Correção Abas</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; --payable: #6366f1; }
         
@@ -591,7 +591,29 @@
         
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         
-        // --- FUNÇÃO PARA ALTERNAR AS ABAS DE CONTAS A PAGAR (CORRIGIDA) ---
+        // --- FUNÇÃO PARA ALTERNAR AS ABAS DE ACERTO DE CONTAS (RESTAURADA) ---
+        function switchAcertoTab(tab) { 
+            document.getElementById('btn-tab-pendentes').classList.remove('active-tab'); 
+            document.getElementById('btn-tab-historico').classList.remove('active-tab'); 
+            document.getElementById('view-pendentes').style.display = 'none'; 
+            document.getElementById('view-historico').style.display = 'none'; 
+            if(tab === 'pendentes') { 
+                document.getElementById('btn-tab-pendentes').classList.add('active-tab'); 
+                document.getElementById('view-pendentes').style.display = 'flex'; 
+                renderAcerto(); 
+            } else { 
+                document.getElementById('btn-tab-historico').classList.add('active-tab'); 
+                document.getElementById('view-historico').style.display = 'flex'; 
+                const hj = new Date().toISOString().split('T')[0]; 
+                if(!document.getElementById('f-hist-inicio').value) { 
+                    document.getElementById('f-hist-inicio').value = hj; 
+                    document.getElementById('f-hist-fim').value = hj; 
+                } 
+                renderHistorico(); 
+            } 
+        }
+
+        // --- FUNÇÃO PARA ALTERNAR AS ABAS DE CONTAS A PAGAR ---
         function switchPagarTab(tab) {
             document.getElementById('btn-tab-pagar-lista').classList.remove('active-tab');
             document.getElementById('btn-tab-pagar-forn').classList.remove('active-tab');
