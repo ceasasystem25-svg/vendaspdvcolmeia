@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendas Pro v10.37 - Correção Abas</title>
+    <title>Sistema de Vendas Pro v10.38 - Baixa de Fornecedores</title>
     <style>
         :root { --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; --text: #1f2937; --info: #0ea5e9; --payable: #6366f1; }
         
@@ -348,6 +348,7 @@
             <div class="card-table-container">
                 <div class="top-controls tab-container">
                     <button class="tab-btn tab-btn-payable active-tab" id="btn-tab-pagar-lista" onclick="switchPagarTab('lista')">🛒 Lista de Compras / Pagar</button>
+                    <button class="tab-btn tab-btn-payable" id="btn-tab-pagar-hist" onclick="switchPagarTab('historico')">📑 Registro de Compras (Baixas)</button>
                     <button class="tab-btn tab-btn-payable" id="btn-tab-pagar-forn" onclick="switchPagarTab('fornecedores')">🏢 Cadastro de Fornecedores</button>
                 </div>
                 
@@ -356,6 +357,11 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
                             <div><h3 style="margin:0; color: var(--payable);">Gestão de Compras (Saídas)</h3></div>
                             <div style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                <div style="display: flex; gap: 5px; align-items: center; background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                    <button class="btn btn-success" onclick="abrirModalBaixaCpr()" style="padding:4px 8px; font-size:0.9rem; height: auto;">💰 Realizar Baixa</button>
+                                    <button class="btn btn-ghost" onclick="cancelarBaixaSelecionadosCpr()" style="padding:4px 8px; font-size:0.9rem; color: var(--danger); border-color: var(--danger); height: auto;">↩️ Desfazer</button>
+                                </div>
+                                <div style="border-left: 1px solid #cbd5e1; height: 25px; margin: 0 2px;"></div>
                                 <div style="display: flex; gap: 5px; align-items: center; background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
                                     <button class="btn-acao btn-acao-print" onclick="imprimirCupomCompra()">IMPRIMIR CUPOM 🖨️</button>
                                     <button class="btn-acao btn-acao-edit" onclick="editarCompraSelecionada()">ALTERAR COMPRA ✏️</button>
@@ -389,11 +395,30 @@
                                     <th>Fornecedor</th>
                                     <th>Vencimento</th>
                                     <th>Total da Compra</th>
-                                    <th>Pagamento</th>
                                     <th style="text-align: center;">Status</th>
+                                    <th>Pagamento Registrado</th>
                                 </tr>
                             </thead>
                             <tbody id="pagar-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="view-pagar-hist" style="display: none; flex-direction: column; flex-grow: 1; overflow: hidden;">
+                    <div class="top-controls">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                            <div><h3 style="margin:0; color: var(--payable);">Registro de Compras (Baixas)</h3></div>
+                        </div>
+                        <div class="form-row" style="background: #e0e7ff; padding: 1rem; border-radius: 8px; border: 1px solid #c7d2fe; margin-bottom: 1.5rem;">
+                            <div class="form-group"><label>Data da Baixa De:</label><input type="date" id="f-hist-cpr-inicio" onchange="renderPagarHist()"></div>
+                            <div class="form-group"><label>Até:</label><input type="date" id="f-hist-cpr-fim" onchange="renderPagarHist()"></div>
+                            <div class="form-group" style="flex:2"><label>Pesquisar Fornecedor:</label><input type="text" id="f-hist-cpr-busca" placeholder="Digite o nome..." onkeyup="renderPagarHist()"></div>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th style="white-space: nowrap;">Data da Baixa</th><th>Compra</th><th>Fornecedor</th><th>Método de Pagamento</th><th>Valor Pago</th><th style="text-align: center; width: 80px;">Ações</th></tr></thead>
+                            <tbody id="historico-cpr-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -544,6 +569,22 @@
             <div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="btn btn-ghost" onclick="fecharModalBaixa()">Cancelar</button><button class="btn btn-success" style="font-size: 1.1rem; padding: 10px 20px;" onclick="confirmarBaixaLote()">✔ Confirmar</button></div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="modal-baixa-cpr">
+        <div class="modal" style="max-width: 500px; padding: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom: 2px solid #c7d2fe; padding-bottom: 10px;">
+                <h2 style="margin:0; color: var(--payable);">Pagar Fornecedor</h2><button type="button" onclick="fecharModalBaixaCpr()" style="font-size:1.5rem; border:none; background:none; cursor:pointer">&times;</button>
+            </div>
+            <div id="lista-baixa-cpr" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 15px;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; font-size: 1.2rem;"><span>Falta Pagar:</span><b id="total-baixa-txt-cpr" style="font-size: 1.6rem; color: var(--danger);">R$ 0,00</b></div>
+            <div id="div-baixa-parcial-cpr" style="display:none; background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid #c7d2fe; margin-bottom: 15px;">
+                <label style="color: var(--payable);">Valor a Pagar Agora (R$):</label>
+                <input type="text" id="v-baixa-valor-cpr" style="width: 100%; box-sizing: border-box; font-size: 1.1rem; padding: 8px; margin-top: 5px; font-weight: bold;" oninput="maskBRL(this)">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;"><label>Método de Pagamento</label><select id="metodo-baixa-popup-cpr" style="font-size: 1rem; padding: 10px;"><option value="Dinheiro">Dinheiro</option><option value="PIX">PIX</option><option value="Cartão Débito">Cartão Débito</option><option value="Cartão Crédito">Cartão Crédito</option><option value="Cheque">Cheque</option><option value="Transferência Bancária">Transferência Bancária</option></select></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;"><button class="btn btn-ghost" onclick="fecharModalBaixaCpr()">Cancelar</button><button class="btn btn-payable" style="font-size: 1.1rem; padding: 10px 20px;" onclick="confirmarBaixaLoteCpr()">✔ Confirmar Pagamento</button></div>
+        </div>
+    </div>
     
     <div class="modal-overlay" id="modal-impressao-agrupada">
         <div class="modal" style="max-width: 1000px;">
@@ -591,7 +632,7 @@
         
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         
-        // --- FUNÇÃO PARA ALTERNAR AS ABAS DE ACERTO DE CONTAS (RESTAURADA) ---
+        // --- ALTERNAR ABAS: ACERTO DE CONTAS ---
         function switchAcertoTab(tab) { 
             document.getElementById('btn-tab-pendentes').classList.remove('active-tab'); 
             document.getElementById('btn-tab-historico').classList.remove('active-tab'); 
@@ -613,16 +654,28 @@
             } 
         }
 
-        // --- FUNÇÃO PARA ALTERNAR AS ABAS DE CONTAS A PAGAR ---
+        // --- ALTERNAR ABAS: CONTAS A PAGAR (ATUALIZADO PARA 3 ABAS) ---
         function switchPagarTab(tab) {
-            document.getElementById('btn-tab-pagar-lista').classList.remove('active-tab');
-            document.getElementById('btn-tab-pagar-forn').classList.remove('active-tab');
-            document.getElementById('view-pagar-lista').style.display = 'none';
-            document.getElementById('view-pagar-forn').style.display = 'none';
+            ['lista', 'hist', 'forn'].forEach(t => {
+                const btn = document.getElementById(`btn-tab-pagar-${t === 'hist' ? 'hist' : (t==='forn'?'forn':'lista')}`);
+                const view = document.getElementById(`view-pagar-${t === 'hist' ? 'hist' : (t==='forn'?'forn':'lista')}`);
+                if(btn) btn.classList.remove('active-tab');
+                if(view) view.style.display = 'none';
+            });
+            
             if(tab === 'lista') {
                 document.getElementById('btn-tab-pagar-lista').classList.add('active-tab');
                 document.getElementById('view-pagar-lista').style.display = 'flex';
                 renderPagar();
+            } else if(tab === 'historico') {
+                document.getElementById('btn-tab-pagar-hist').classList.add('active-tab');
+                document.getElementById('view-pagar-hist').style.display = 'flex';
+                const hj = new Date().toISOString().split('T')[0]; 
+                if(!document.getElementById('f-hist-cpr-inicio').value) { 
+                    document.getElementById('f-hist-cpr-inicio').value = hj; 
+                    document.getElementById('f-hist-cpr-fim').value = hj; 
+                } 
+                renderPagarHist();
             } else {
                 document.getElementById('btn-tab-pagar-forn').classList.add('active-tab');
                 document.getElementById('view-pagar-forn').style.display = 'flex';
@@ -732,7 +785,7 @@
         function confirmarImpressaoAgrupada() { document.getElementById('receipt-print').style.width='100%'; document.getElementById('receipt-print').innerHTML=document.getElementById('preview-relatorio-agrupado').innerHTML; window.print(); setTimeout(()=>document.getElementById('receipt-print').innerHTML='',500); }
         function gerarRomaneio() { sysAlert("Módulo Romaneio acionado!"); }
 
-        // --- ACERTO DE CONTAS ---
+        // --- ACERTO DE CONTAS (RECEBIMENTOS) ---
         let filtroAcertoAtual = 'Todos';
         function setFiltroAcerto(f) { filtroAcertoAtual = f; ['Todos','A Vencer','Vencidos','Pagas'].forEach(x => document.getElementById(`f-acerto-${x}`).classList.remove('active')); document.getElementById(`f-acerto-${f}`).classList.add('active'); renderAcerto(); }
         function renderAcerto() { const tb=document.getElementById('acerto-table-body'); const hj=new Date().toISOString().split('T')[0]; const b=(document.getElementById('f-acerto-busca').value||'').toLowerCase(); const ini=document.getElementById('f-acerto-inicio').value; const fim=document.getElementById('f-acerto-fim').value; document.getElementById('check-all-acerto').checked=false; let flt=db.vendas.filter(v=>v.vencimento!==null && v.status==='Ativa'); flt=flt.filter(v=>{ const p=v.pagamento.startsWith('Acertado'); const vn=!p && v.vencimento<hj; const av=!p && v.vencimento>=hj; if(filtroAcertoAtual==='Pagas'&&!p)return false; if(filtroAcertoAtual==='Vencidos'&&!vn)return false; if(filtroAcertoAtual==='A Vencer'&&!av)return false; if(b&&!v.cliente.toLowerCase().includes(b))return false; if(ini&&v.vencimento<ini)return false; if(fim&&v.vencimento>fim)return false; return true; }); flt.sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento)); if(!flt.length) { tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhuma conta.</td></tr>`; return; } tb.innerHTML=flt.map(v=>{ const p=v.pagamento.startsWith('Acertado'); const vn=!p && v.vencimento<hj; let sty=p?'background:#f0fdf4;opacity:0.8':(vn?'background:#fef2f2':''); let bg=p?'<span class="badge badge-success">PAGO</span>':(vn?'<span class="badge badge-danger">VENCIDO</span>':'<span class="badge badge-warning">A VENCER</span>'); let pt=p?`<span style="color:#059669;font-weight:bold;">✔ ${v.pagamento.replace('Acertado (','').replace(')','')}</span>`:'-'; let res=v.total-(v.valorPago||0); let fx=(!p&&(v.valorPago||0)>0)?`<br><span style="font-size:0.8rem;color:var(--danger)">Falta R$ ${formatCurrency(res)}</span>`:''; return `<tr style="${sty}"><td style="text-align:center"><input type="checkbox" class="check-acerto" value="${v.id}" onchange="highlightRow(this)"></td><td><b>#${formatId(v.id)}</b></td><td>${v.cliente}</td><td style="${vn?'color:red;font-weight:bold':'white-space:nowrap'}">${v.vencimento.split('-').reverse().join('/')}</td><td style="white-space:nowrap"><b>R$ ${formatCurrency(v.total)}</b>${fx}</td><td style="text-align:center">${bg}</td><td>${pt}</td></tr>`; }).join(''); }
@@ -743,10 +796,10 @@
         function fecharModalBaixa() { document.getElementById('modal-baixa').style.display='none'; }
         async function confirmarBaixaLote() { const c=document.querySelectorAll('.check-acerto:checked'); const m=document.getElementById('metodo-baixa-popup').value; const dt=new Date().toISOString(); let bx=0; if(c.length===1) { const v=db.vendas.find(x=>x.id==c[0].value); let res=v.total-(v.valorPago||0); let val=strToFloat(document.getElementById('v-baixa-valor').value); if(val<=0) return sysAlert("Valor inválido."); let cu=db.clientes.find(x=>x.id==v.clienteId); if(val>res) { let tr=val-res; if(await sysConfirm(`O cliente pagou a mais!\nSobrou R$ ${formatCurrency(tr)}.\nTransformar em CRÉDITO?`)) { cu.credito=(cu.credito||0)+tr; sysAlert(`Crédito adicionado!`); val=res; } else val=res; } v.valorPago=(v.valorPago||0)+val; if(!v.historicoPgto) v.historicoPgto=[]; v.historicoPgto.push({data:dt,valor:val,metodo:m}); if(Math.abs(v.total-v.valorPago)<0.01) { v.pagamento=`Acertado (${m})`; v.dataBaixa=dt; } bx++; } else { c.forEach(cb=>{ const v=db.vendas.find(x=>x.id==cb.value); if(v&&!v.pagamento.startsWith('Acertado')) { let res=v.total-(v.valorPago||0); v.valorPago=v.total; if(!v.historicoPgto) v.historicoPgto=[]; v.historicoPgto.push({data:dt,valor:res,metodo:m}); v.pagamento=`Acertado (${m})`; v.dataBaixa=dt; bx++; } }); } if(bx>0) { saveDB(); fecharModalBaixa(); renderAcerto(); renderHistorico(); renderSales(); renderClients(); } }
         function desfazerBaixaLogica(ids) { let des=0; ids.forEach(id=>{ const v=db.vendas.find(x=>x.id===id); if(v&&(v.pagamento.startsWith('Acertado')||v.valorPago>0)) { v.pagamento=v.pagamentosOriginal||'Prazo em Carteira'; v.dataBaixa=null; v.valorPago=v.valorPagoOriginal||0; v.historicoPgto=[]; des++; } }); return des; }
-        async function cancelarBaixaSelecionados() { const c=document.querySelectorAll('.check-acerto:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm(`Desfazer?`,true)) { const ids=Array.from(c).map(x=>parseInt(x.value)); if(desfazerBaixaLogica(ids)>0) { saveDB(); renderAcerto(); renderHistorico(); renderSales(); } } }
+        async function cancelarBaixaSelecionados() { const c=document.querySelectorAll('.check-acerto:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm(`Desfazer recebimento?`,true)) { const ids=Array.from(c).map(x=>parseInt(x.value)); if(desfazerBaixaLogica(ids)>0) { saveDB(); renderAcerto(); renderHistorico(); renderSales(); } } }
         async function cancelarBaixaIndividual(id) { if(await sysConfirm(`DESFAZER PAGAMENTO?`,true)) { if(desfazerBaixaLogica([id])>0) { saveDB(); renderAcerto(); renderHistorico(); renderSales(); } } }
 
-        // --- MÓDULO CONTAS A PAGAR (COMPRAS) ---
+        // --- MÓDULO CONTAS A PAGAR (COMPRAS / FORNECEDORES) ---
         let cartCpr = []; let pgtosCpr = [];
         
         function autoFillForn() { return formatInputVal('cpr-fornecedor', db.fornecedores); }
@@ -787,13 +840,59 @@
             setTimeout(() => document.getElementById('cpr-fornecedor').focus(), 150); 
         }
 
-        async function executeCompra(e) { e.preventDefault(); const t = calcTotalCpr(); if(!cartCpr.length) return sysAlert('Adicione produtos!'); if(!pgtosCpr.length) return sysAlert('Lance pagamento'); if(t.restante > 0) return sysAlert(`Falta R$ ${formatCurrency(t.restante)}`); const f = formatInputVal('cpr-fornecedor', db.fornecedores); if(!f) return sysAlert('Fornecedor inválido'); const dtCpr = document.getElementById('cpr-data').value; const itPrz = pgtosCpr.find(p => p.metodo === 'A Prazo'); let venc = dtCpr; let stat = 'Paga'; if(itPrz) { let d = new Date(dtCpr + "T12:00:00"); d.setDate(d.getDate() + (f.prazo || 0)); venc = d.toISOString().split('T')[0]; stat = 'Pendente'; } const idEdit = document.getElementById('cpr-id-edit').value; const resumo = cartCpr.map(i => `${i.nome} (x${i.qtd})`).join(', '); const pgtoString = pgtosCpr.map(p => `${p.metodo} (${formatCurrency(p.valor)})`).join(' | '); const base = { data: dtCpr, fornecedorId: f.id, fornecedor: f.nome, carrinho: [...cartCpr], pagamentos: [...pgtosCpr], total: t.totalVenda, vencimento: venc, status: 'Ativa', situacao: stat, itens: resumo, pgtoString }; if(idEdit) { const idx = db.compras.findIndex(x => x.id == idEdit); db.compras[idx] = { ...db.compras[idx], ...base }; sysAlert("Atualizada!"); } else { db.compras.push({ id: db.compras.length ? Math.max(...db.compras.map(x=>x.id))+1 : 1, ...base }); } saveDB(); closeModal('modal-compra'); renderPagar(); }
+        async function executeCompra(e) { e.preventDefault(); const t = calcTotalCpr(); if(!cartCpr.length) return sysAlert('Adicione produtos!'); if(!pgtosCpr.length) return sysAlert('Lance pagamento'); if(t.restante > 0) return sysAlert(`Falta R$ ${formatCurrency(t.restante)}`); const f = formatInputVal('cpr-fornecedor', db.fornecedores); if(!f) return sysAlert('Fornecedor inválido'); const dtCpr = document.getElementById('cpr-data').value; const itPrz = pgtosCpr.find(p => p.metodo === 'A Prazo'); let venc = dtCpr; let stat = 'Paga'; if(itPrz) { let d = new Date(dtCpr + "T12:00:00"); d.setDate(d.getDate() + (f.prazo || 0)); venc = d.toISOString().split('T')[0]; stat = 'Pendente'; } const idEdit = document.getElementById('cpr-id-edit').value; const resumo = cartCpr.map(i => `${i.nome} (x${i.qtd})`).join(', '); const pgtoString = pgtosCpr.map(p => `${p.metodo} (${formatCurrency(p.valor)})`).join(' | '); 
+        const base = { data: dtCpr, fornecedorId: f.id, fornecedor: f.nome, carrinho: [...cartCpr], pagamentos: [...pgtosCpr], total: t.totalVenda, vencimento: venc, status: 'Ativa', situacao: stat, itens: resumo, pgtoString }; 
+        if(idEdit) { 
+            const idx = db.compras.findIndex(x => x.id == idEdit); 
+            // Preserve payment history on edit
+            if(db.compras[idx].dataBaixa) base.dataBaixa = db.compras[idx].dataBaixa;
+            base.valorPago = db.compras[idx].valorPago || t.totalPago;
+            base.valorPagoOriginal = db.compras[idx].valorPagoOriginal || t.totalPago;
+            if(db.compras[idx].historicoPgto) base.historicoPgto = db.compras[idx].historicoPgto;
+            db.compras[idx] = { ...db.compras[idx], ...base }; 
+            sysAlert("Atualizada!"); 
+        } else { 
+            base.valorPago = t.totalPago;
+            base.valorPagoOriginal = t.totalPago;
+            base.historicoPgto = [];
+            db.compras.push({ id: db.compras.length ? Math.max(...db.compras.map(x=>x.id))+1 : 1, ...base }); 
+        } saveDB(); closeModal('modal-compra'); renderPagar(); }
 
         let filtroPagarAtual = 'Todos';
         function setFiltroPagar(f) { filtroPagarAtual = f; ['Todos', 'A Vencer', 'Vencidas', 'Pagas'].forEach(x => document.getElementById('f-btn-pagar-'+x).classList.remove('active')); document.getElementById('f-btn-pagar-'+f).classList.add('active'); renderPagar(); }
-        function renderPagar() { const tb = document.getElementById('pagar-table-body'); const b = document.getElementById('f-pagar-busca').value.toLowerCase(); const ini = document.getElementById('f-pagar-inicio').value; const fim = document.getElementById('f-pagar-fim').value; const hj = new Date().toISOString().split('T')[0]; document.getElementById('check-all-pagar').checked = false; let flt = db.compras.filter(c => c.status === 'Ativa'); flt = flt.filter(c => { if(b && !c.fornecedor.toLowerCase().includes(b) && !c.id.toString().includes(b)) return false; if(ini && c.data < ini) return false; if(fim && c.data > fim) return false; const pg = c.situacao === 'Paga'; const vn = !pg && c.vencimento < hj; const av = !pg && c.vencimento >= hj; if(filtroPagarAtual === 'Pagas' && !pg) return false; if(filtroPagarAtual === 'Vencidas' && !vn) return false; if(filtroPagarAtual === 'A Vencer' && !av) return false; return true; }); flt.sort((a,b) => new Date(b.data) - new Date(a.data)); tb.innerHTML = flt.map(c => { const dStr = c.data.split('-').reverse().join('/'); const pg = c.situacao === 'Paga'; const vn = !pg && c.vencimento < hj; const bg = pg ? '<span class="badge badge-success">PAGO</span>' : (vn ? '<span class="badge badge-danger">VENCIDA</span>' : '<span class="badge badge-warning">A VENCER</span>'); const vStr = pg ? '-' : `<b style="color:${vn?'red':'#000'}">${c.vencimento.split('-').reverse().join('/')}</b>`; return `<tr style="${pg ? 'background:#f8fafc; opacity:0.8' : (vn?'background:#fef2f2':'')}"><td style="text-align: center;"><input type="checkbox" class="check-pagar" value="${c.id}" onchange="highlightRow(this, 'payable')"></td><td><b>#${formatId(c.id)}</b></td><td>${dStr}</td><td>${c.fornecedor}</td><td>${vStr}</td><td style="white-space: nowrap;"><b>R$ ${formatCurrency(c.total)}</b></td><td style="font-size:0.8rem">${c.pgtoString}</td><td style="text-align:center;">${bg}</td></tr>`; }).join(''); }
-        async function cancelarCompraSelecionada() { const c = document.querySelectorAll('.check-pagar:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm("Cancelar?", true)) { c.forEach(cb => { const cp = db.compras.find(x=>x.id==cb.value); if(cp) cp.status='Cancelada'; }); saveDB(); renderPagar(); } }
+        
+        function renderPagar() { const tb = document.getElementById('pagar-table-body'); const b = document.getElementById('f-pagar-busca').value.toLowerCase(); const ini = document.getElementById('f-pagar-inicio').value; const fim = document.getElementById('f-pagar-fim').value; const hj = new Date().toISOString().split('T')[0]; document.getElementById('check-all-pagar').checked = false; let flt = db.compras.filter(c => c.status === 'Ativa'); flt = flt.filter(c => { if(b && !c.fornecedor.toLowerCase().includes(b) && !c.id.toString().includes(b)) return false; if(ini && c.data < ini) return false; if(fim && c.data > fim) return false; const pg = c.situacao === 'Paga'; const vn = !pg && c.vencimento < hj; const av = !pg && c.vencimento >= hj; if(filtroPagarAtual === 'Pagas' && !pg) return false; if(filtroPagarAtual === 'Vencidas' && !vn) return false; if(filtroPagarAtual === 'A Vencer' && !av) return false; return true; }); flt.sort((a,b) => new Date(b.data) - new Date(a.data)); 
+        tb.innerHTML = flt.map(c => { 
+            const dStr = c.data.split('-').reverse().join('/'); 
+            const pg = c.situacao === 'Paga'; 
+            const vn = !pg && c.vencimento < hj; 
+            const bg = pg ? '<span class="badge badge-success">PAGO</span>' : (vn ? '<span class="badge badge-danger">VENCIDA</span>' : '<span class="badge badge-warning">A VENCER</span>'); 
+            const vStr = pg ? '-' : `<b style="color:${vn?'red':'#000'}">${c.vencimento.split('-').reverse().join('/')}</b>`; 
+            
+            // Lógica para mostrar pagamentos parciais igual nas Vendas
+            let pt = pg ? `<span style="color:#059669;font-weight:bold;">✔ OK</span>` : c.pgtoString; 
+            if(c.historicoPgto && c.historicoPgto.length > 0 && pg) pt = `<span style="color:#059669;font-weight:bold;">✔ Baixado</span>`;
+            let res = c.total - (c.valorPago || 0); 
+            let fx = (!pg && (c.valorPago || 0) > 0) ? `<br><span style="font-size:0.8rem;color:var(--danger)">Falta R$ ${formatCurrency(res)}</span>` : '';
+            
+            return `<tr style="${pg ? 'background:#f8fafc; opacity:0.8' : (vn?'background:#fef2f2':'')}"><td style="text-align: center;"><input type="checkbox" class="check-pagar" value="${c.id}" onchange="highlightRow(this, 'payable')"></td><td><b>#${formatId(c.id)}</b></td><td>${dStr}</td><td>${c.fornecedor}</td><td>${vStr}</td><td style="white-space: nowrap;"><b>R$ ${formatCurrency(c.total)}</b>${fx}</td><td style="text-align:center;">${bg}</td><td style="font-size:0.8rem">${pt}</td></tr>`; 
+        }).join(''); }
+        
+        async function cancelarCompraSelecionada() { const c = document.querySelectorAll('.check-pagar:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm("Cancelar Compra?", true)) { c.forEach(cb => { const cp = db.compras.find(x=>x.id==cb.value); if(cp) cp.status='Cancelada'; }); saveDB(); renderPagar(); } }
         function editarCompraSelecionada() { const c = document.querySelectorAll('.check-pagar:checked'); if(c.length !== 1) return sysAlert("Selecione UMA."); const cp = db.compras.find(x => x.id == c[0].value); if(!cp || cp.status==='Cancelada') return sysAlert("Inválida."); document.getElementById('cpr-id-edit').value = cp.id; document.getElementById('cpr-data').value = cp.data; document.getElementById('cpr-fornecedor').value = `${cp.fornecedorId} - ${cp.fornecedor}`; cartCpr = JSON.parse(JSON.stringify(cp.carrinho)); pgtosCpr = JSON.parse(JSON.stringify(cp.pagamentos)); renderizarCarrinhoCpr(); renderizarPagamentosCpr(); document.getElementById('modal-title-compra').innerText = `Editar Compra #${formatId(cp.id)}`; document.getElementById('modal-compra').style.display='flex'; }
+        
+        // --- BAIXA DE COMPRAS (CONTAS A PAGAR) ---
+        function renderPagarHist() { const tb = document.getElementById('historico-cpr-table-body'); const b = (document.getElementById('f-hist-cpr-busca').value||'').toLowerCase(); const ini = document.getElementById('f-hist-cpr-inicio').value; const fim = document.getElementById('f-hist-cpr-fim').value; let l = []; db.compras.filter(c => (c.historicoPgto && c.historicoPgto.length > 0) || c.situacao === 'Paga').forEach(c => { if(c.historicoPgto && c.historicoPgto.length > 0) { c.historicoPgto.forEach(p => { const dt = p.data.split('T')[0]; if((!b || c.fornecedor.toLowerCase().includes(b)) && (!ini || dt >= ini) && (!fim || dt <= fim)) l.push({dIso: p.data, cId: c.id, forn: c.fornecedor, met: p.metodo, val: p.valor}); }); } else if (c.dataBaixa) { const dt = c.dataBaixa.split('T')[0]; if((!b || c.fornecedor.toLowerCase().includes(b)) && (!ini || dt >= ini) && (!fim || dt <= fim)) l.push({dIso: c.dataBaixa, cId: c.id, forn: c.fornecedor, met: 'Baixa Integrada', val: c.total}); } }); l.sort((a,b) => new Date(b.dIso) - new Date(a.dIso)); if(!l.length) { tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum pagamento registrado.</td></tr>`; return; } tb.innerHTML = l.map(x => { const dt = new Date(x.dIso); return `<tr><td style="white-space:nowrap"><b>${dt.toLocaleDateString('pt-BR')}</b> <span style="color:#888;font-size:0.8rem">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span></td><td><b>#${formatId(x.cId)}</b></td><td>${x.forn}</td><td><span style="color:var(--payable);font-weight:bold">${x.met}</span></td><td style="white-space:nowrap"><b>R$ ${formatCurrency(x.val)}</b></td><td style="text-align:center"><button class="btn btn-ghost" onclick="cancelarBaixaIndividualCpr(${x.cId})" style="padding:4px 8px;font-size:0.85rem;color:var(--danger);border-color:var(--danger)">❌ Desfazer</button></td></tr>`; }).join(''); }
+        
+        function abrirModalBaixaCpr() { const c = document.querySelectorAll('.check-pagar:checked'); if(!c.length) return sysAlert("Selecione uma conta a pagar pendente."); let ht = '<ul style="list-style:none;padding:0;margin:0;">'; let tot = 0; let pg = 0; c.forEach(cb => { const cp = db.compras.find(x => x.id == cb.value); if(cp) { if(cp.situacao !== 'Paga') { let res = cp.total - (cp.valorPago || 0); tot += res; ht += `<li style="padding:8px 5px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:0.9rem;"><span><b>#${formatId(cp.id)}</b> - ${cp.fornecedor}</span><b>R$ ${formatCurrency(res)}</b></li>`; } else pg++; } }); ht += '</ul>'; if(tot === 0 && pg > 0) return sysAlert("Já estão pagas!"); document.getElementById('lista-baixa-cpr').innerHTML = ht; document.getElementById('total-baixa-txt-cpr').innerText = `R$ ${formatCurrency(tot)}`; if(c.length === 1 && tot > 0) { document.getElementById('div-baixa-parcial-cpr').style.display = 'block'; document.getElementById('v-baixa-valor-cpr').value = tot.toFixed(2).replace('.',',').replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.'); } else { document.getElementById('div-baixa-parcial-cpr').style.display = 'none'; } document.getElementById('modal-baixa-cpr').style.display = 'flex'; }
+        function fecharModalBaixaCpr() { document.getElementById('modal-baixa-cpr').style.display = 'none'; }
+        
+        async function confirmarBaixaLoteCpr() { const c = document.querySelectorAll('.check-pagar:checked'); const m = document.getElementById('metodo-baixa-popup-cpr').value; const dt = new Date().toISOString(); let bx = 0; if(c.length === 1) { const cp = db.compras.find(x => x.id == c[0].value); let res = cp.total - (cp.valorPago || 0); let val = strToFloat(document.getElementById('v-baixa-valor-cpr').value); if(val <= 0 || val > res) return sysAlert("Valor inválido ou maior que a dívida."); cp.valorPago = (cp.valorPago || 0) + val; if(!cp.historicoPgto) cp.historicoPgto = []; cp.historicoPgto.push({data: dt, valor: val, metodo: m}); if(Math.abs(cp.total - cp.valorPago) < 0.01) { cp.situacao = 'Paga'; cp.dataBaixa = dt; } bx++; } else { c.forEach(cb => { const cp = db.compras.find(x => x.id == cb.value); if(cp && cp.situacao !== 'Paga') { let res = cp.total - (cp.valorPago || 0); cp.valorPago = cp.total; if(!cp.historicoPgto) cp.historicoPgto = []; cp.historicoPgto.push({data: dt, valor: res, metodo: m}); cp.situacao = 'Paga'; cp.dataBaixa = dt; bx++; } }); } if(bx > 0) { saveDB(); fecharModalBaixaCpr(); renderPagar(); renderPagarHist(); } }
+        
+        function desfazerBaixaLogicaCpr(ids) { let des = 0; ids.forEach(id => { const cp = db.compras.find(x => x.id === id); if(cp && (cp.situacao === 'Paga' || cp.valorPago > (cp.valorPagoOriginal || 0))) { cp.situacao = 'Pendente'; cp.dataBaixa = null; cp.valorPago = cp.valorPagoOriginal || 0; cp.historicoPgto = []; if(cp.total === cp.valorPago) cp.situacao = 'Paga'; des++; } }); return des; }
+        async function cancelarBaixaSelecionadosCpr() { const c = document.querySelectorAll('.check-pagar:checked'); if(!c.length) return sysAlert("Selecione."); if(await sysConfirm(`Desfazer pagamento ao fornecedor?`, true)) { const ids = Array.from(c).map(x => parseInt(x.value)); if(desfazerBaixaLogicaCpr(ids) > 0) { saveDB(); renderPagar(); renderPagarHist(); } } }
+        async function cancelarBaixaIndividualCpr(id) { if(await sysConfirm(`DESFAZER PAGAMENTO AO FORNECEDOR?`, true)) { if(desfazerBaixaLogicaCpr([id]) > 0) { saveDB(); renderPagar(); renderPagarHist(); } } }
+
         function imprimirRelatorioCompras() { sysAlert("Imprimir relatório de contas a pagar."); }
         function imprimirCupomCompra() { sysAlert("Imprimir cupom de compra."); }
 
